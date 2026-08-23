@@ -30,7 +30,7 @@ export const paintings: Painting[] = [
     "images": [
       "/images/IMG_3269.jpg",
       "/images/IMG_9449.jpg",
-      "/images/IMG_9462.jpg"
+      "/images/IMG_9466.jpg"
     ],
     "status": "available",
     "year": "2026"
