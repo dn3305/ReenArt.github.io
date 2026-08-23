@@ -61,6 +61,7 @@ export interface ReceiptDetails {
   shipState: string;
   shipPincode: string;
   shipCountry: string;
+  specialRequest?: string;
   pdfBuffer: Buffer;
 }
 
@@ -105,6 +106,12 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
         ${escapeHtml(details.shipCity)}, ${escapeHtml(details.shipState)} ${escapeHtml(details.shipPincode)}<br/>
         ${escapeHtml(details.shipCountry)}
       </div>
+
+      ${details.specialRequest ? `
+      <div style="margin-top: 16px; padding: 12px 16px; background: #fdf6e3; border: 1px solid #e8d98a; font-size: 13px; color: #5c4a00;">
+        <strong>Buyer's Special Request</strong><br/>
+        ${escapeHtml(details.specialRequest).replace(/\n/g, '<br/>')}
+      </div>` : ''}
 
       <div style="text-align: center; margin-top: 28px;">
         <a href="${downloadUrl}" style="display: inline-block; padding: 12px 28px; background: #c9a84c; color: #fff; text-decoration: none; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;">

@@ -44,6 +44,7 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
   const shipState = notes.shipState || '';
   const shipPincode = notes.shipPincode || '';
   const shipCountry = notes.shipCountry || '';
+  const specialRequest = notes.specialRequest || '';
 
   if (!paintingId || !buyerEmail) {
     console.error('Payment missing paintingId/payerEmail in notes:', payment.id);
@@ -146,6 +147,7 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
     shipState,
     shipPincode,
     shipCountry,
+    specialRequest,
     pdfBuffer,
   });
 
