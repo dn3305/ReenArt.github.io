@@ -3,10 +3,45 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import Script from 'next/script';
 import { Painting } from '../../data/paintings';
 
 interface Props {
   painting: Painting;
+}
+
+interface RazorpaySuccessResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
+interface RazorpayFailureResponse {
+  error: { description?: string };
+}
+
+interface RazorpayInstance {
+  open: () => void;
+  on: (event: 'payment.failed', handler: (response: RazorpayFailureResponse) => void) => void;
+}
+
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  name: string;
+  description: string;
+  order_id: string;
+  handler: (response: RazorpaySuccessResponse) => void;
+  prefill: { name: string; email: string };
+  theme: { color: string };
+  modal: { ondismiss: () => void };
+}
+
+declare global {
+  interface Window {
+    Razorpay: new (options: RazorpayOptions) => RazorpayInstance;
+  }
 }
 
 export default function PaintingDetailClient({ painting }: Props) {
@@ -21,6 +56,124 @@ export default function PaintingDetailClient({ painting }: Props) {
     phone: '',
     message: `Hello Nazia,\n\nI am interested in acquiring your painting "${painting.title}" from the ${painting.series} series. Please let me know its availability, delivery options, and additional details.\n\nThank you.`
   });
+
+  const [isPayOpen, setIsPayOpen] = useState(false);
+  const [isPaying, setIsPaying] = useState(false);
+  const [paySuccess, setPaySuccess] = useState<{ paymentId: string } | null>(null);
+  const [payError, setPayError] = useState<string | null>(null);
+  const [payerName, setPayerName] = useState('');
+  const [payerEmail, setPayerEmail] = useState('');
+  const [razorpayReady, setRazorpayReady] = useState(false);
+  const [payCurrency, setPayCurrency] = useState<'USD' | 'INR'>('USD');
+  const [inrPreview, setInrPreview] = useState<number | null>(null);
+  const [inrPreviewLoading, setInrPreviewLoading] = useState(false);
+
+  const closePay = () => {
+    setIsPayOpen(false);
+    setPaySuccess(null);
+    setPayError(null);
+    setPayerName('');
+    setPayerEmail('');
+    setPayCurrency('USD');
+    setInrPreview(null);
+  };
+
+  const selectCurrency = async (currency: 'USD' | 'INR') => {
+    setPayCurrency(currency);
+    setPayError(null);
+    if (currency === 'INR' && inrPreview === null) {
+      setInrPreviewLoading(true);
+      try {
+        const res = await fetch('/api/exchange-rate');
+        const data = await res.json();
+        if (res.ok && typeof data.rate === 'number') {
+          setInrPreview(Math.round(painting.price * data.rate));
+        }
+      } catch (err) {
+        // Non-fatal — the real amount still comes back correctly from
+        // create-order; this is just a preview.
+      } finally {
+        setInrPreviewLoading(false);
+      }
+    }
+  };
+
+  const handlePayNow = async () => {
+    setPayError(null);
+    if (!payerName.trim() || !payerEmail.trim()) {
+      setPayError('Please enter your name and email before paying.');
+      return;
+    }
+    if (!razorpayReady || !window.Razorpay) {
+      setPayError('Payment is still loading — please wait a moment and try again.');
+      return;
+    }
+
+    setIsPaying(true);
+    try {
+      const orderRes = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          paintingId: painting.id,
+          currency: payCurrency,
+          payerName,
+          payerEmail,
+        }),
+      });
+      const orderData = await orderRes.json();
+      if (!orderRes.ok) {
+        setPayError(orderData.error || 'Failed to start payment. Please try again.');
+        setIsPaying(false);
+        return;
+      }
+
+      const razorpay = new window.Razorpay({
+        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID || '',
+        amount: orderData.amount,
+        currency: orderData.currency,
+        name: 'ReenArt Studio',
+        description: painting.title,
+        order_id: orderData.order_id,
+        prefill: { name: payerName, email: payerEmail },
+        theme: { color: '#c9a84c' },
+        handler: async (response) => {
+          try {
+            const verifyRes = await fetch('/api/verify-payment', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(response),
+            });
+            const verifyData = await verifyRes.json();
+            if (verifyRes.ok && verifyData.success) {
+              setPaySuccess({ paymentId: response.razorpay_payment_id });
+            } else {
+              setPayError(verifyData.error || 'Payment could not be verified. Please contact us before retrying.');
+            }
+          } catch (err) {
+            setPayError('Payment could not be verified. Please contact us before retrying.');
+          } finally {
+            setIsPaying(false);
+          }
+        },
+        modal: {
+          ondismiss: () => {
+            setIsPaying(false);
+          },
+        },
+      });
+
+      razorpay.on('payment.failed', (response) => {
+        setPayError(response.error?.description || 'Payment failed. Please try again.');
+        setIsPaying(false);
+      });
+
+      razorpay.open();
+    } catch (err) {
+      setPayError('Failed to start payment. Please check your connection and try again.');
+      setIsPaying(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -66,6 +219,11 @@ export default function PaintingDetailClient({ painting }: Props) {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-12 md:px-12 animate-fade-in flex-1 flex flex-col justify-start">
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="afterInteractive"
+        onLoad={() => setRazorpayReady(true)}
+      />
       {/* Breadcrumb Navigation */}
       <nav className="mb-10 text-[10px] uppercase tracking-widest text-muted flex items-center gap-2">
         <Link href="/gallery" className="hover:text-foreground transition-colors">Gallery</Link>
@@ -177,14 +335,22 @@ export default function PaintingDetailClient({ painting }: Props) {
             </p>
           </div>
 
-          {/* Inquiry CTA Button */}
+          {/* Inquiry / Pay CTA Buttons */}
           {painting.status === 'available' ? (
-            <button
-              onClick={() => setIsInquiryOpen(true)}
-              className="w-full h-12 border border-foreground bg-foreground text-background text-xs uppercase tracking-widest hover:bg-transparent hover:text-foreground transition-all duration-300 font-medium"
-            >
-              Inquire to Acquire
-            </button>
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={() => setIsPayOpen(true)}
+                className="w-full h-12 border border-foreground bg-foreground text-background text-xs uppercase tracking-widest hover:bg-transparent hover:text-foreground transition-all duration-300 font-medium"
+              >
+                Pay Now — {painting.formattedPrice}
+              </button>
+              <button
+                onClick={() => setIsInquiryOpen(true)}
+                className="w-full h-12 border border-border-subtle bg-transparent text-foreground text-xs uppercase tracking-widest hover:border-foreground transition-all duration-300 font-medium"
+              >
+                Inquire to Acquire
+              </button>
+            </div>
           ) : (
             <button
               onClick={() => setIsInquiryOpen(true)}
@@ -304,6 +470,138 @@ export default function PaintingDetailClient({ painting }: Props) {
                 </div>
                 <button
                   onClick={closeInquiry}
+                  className="mt-4 border border-border-subtle px-6 py-2.5 text-[10px] uppercase tracking-widest hover:border-foreground transition-colors font-medium"
+                >
+                  Close Window
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Payment Modal */}
+      {isPayOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity"
+            onClick={closePay}
+          />
+
+          {/* Modal content */}
+          <div className="relative w-full max-w-lg bg-background border border-border-subtle p-8 md:p-10 shadow-2xl z-10 animate-fade-in max-h-[90vh] overflow-y-auto">
+            {/* Close Button */}
+            <button
+              onClick={closePay}
+              className="absolute top-6 right-6 text-muted hover:text-foreground hover:scale-115 transition-all text-sm uppercase tracking-widest"
+              aria-label="Close modal"
+            >
+              ✕
+            </button>
+
+            {!paySuccess ? (
+              <div className="flex flex-col gap-6">
+                <div className="flex flex-col gap-1 pr-6">
+                  <span className="text-[9px] uppercase tracking-[0.3em] text-accent font-medium">Secure Checkout</span>
+                  <h2 className="font-serif text-2xl font-light tracking-wide text-foreground">
+                    Pay for {painting.title}
+                  </h2>
+                  <p className="text-[10px] text-muted tracking-wide mt-1">
+                    {painting.formattedPrice} — payment processed securely via Razorpay.
+                  </p>
+                </div>
+
+                {payError && (
+                  <div className="border border-red-400/40 bg-red-500/10 text-red-400 text-xs tracking-wide px-4 py-3">
+                    {payError}
+                  </div>
+                )}
+
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Pay In</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => selectCurrency('USD')}
+                        className={`h-11 border text-xs uppercase tracking-widest transition-colors ${
+                          payCurrency === 'USD'
+                            ? 'border-foreground bg-foreground text-background font-medium'
+                            : 'border-border-subtle text-muted hover:border-foreground hover:text-foreground'
+                        }`}
+                      >
+                        USD — {painting.formattedPrice}
+                        <span className="block text-[9px] normal-case tracking-normal opacity-70">International card</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => selectCurrency('INR')}
+                        className={`h-11 border text-xs uppercase tracking-widest transition-colors ${
+                          payCurrency === 'INR'
+                            ? 'border-foreground bg-foreground text-background font-medium'
+                            : 'border-border-subtle text-muted hover:border-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {inrPreviewLoading ? '…' : inrPreview !== null ? `₹${inrPreview.toLocaleString('en-IN')}` : 'INR'}
+                        <span className="block text-[9px] normal-case tracking-normal opacity-70">UPI / Cards / Netbanking</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Your Name *</label>
+                    <input
+                      type="text"
+                      required
+                      value={payerName}
+                      onChange={(e) => setPayerName(e.target.value)}
+                      placeholder="e.g. John Doe"
+                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                    />
+                  </div>
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Your Email *</label>
+                    <input
+                      type="email"
+                      required
+                      value={payerEmail}
+                      onChange={(e) => setPayerEmail(e.target.value)}
+                      placeholder="e.g. john@example.com"
+                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  <button
+                    onClick={handlePayNow}
+                    disabled={isPaying}
+                    className="w-full h-12 mt-2 bg-foreground text-background border border-foreground text-xs uppercase tracking-widest font-medium hover:bg-transparent hover:text-foreground disabled:opacity-50 transition-all duration-300"
+                  >
+                    {isPaying
+                      ? 'Processing…'
+                      : payCurrency === 'USD'
+                        ? `Pay ${painting.formattedPrice}`
+                        : `Pay ${inrPreview !== null ? `₹${inrPreview.toLocaleString('en-IN')}` : '…'}`}
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-8 text-center gap-6">
+                {/* Success Icon */}
+                <div className="w-16 h-16 rounded-full border border-accent/30 bg-accent/5 flex items-center justify-center text-accent text-2xl font-light">
+                  ✓
+                </div>
+                <div className="flex flex-col gap-2">
+                  <h3 className="font-serif text-2xl font-light tracking-wide text-foreground">Payment Received</h3>
+                  <p className="text-xs font-light text-muted leading-relaxed max-w-sm tracking-wide">
+                    Thank you for your purchase. A receipt has been sent to <strong>{payerEmail}</strong>, and Nazia will follow up shortly with shipping details.
+                  </p>
+                  <p className="text-[10px] font-light text-muted tracking-wide mt-1">
+                    Payment ID: {paySuccess.paymentId}
+                  </p>
+                </div>
+                <button
+                  onClick={closePay}
                   className="mt-4 border border-border-subtle px-6 py-2.5 text-[10px] uppercase tracking-widest hover:border-foreground transition-colors font-medium"
                 >
                   Close Window
