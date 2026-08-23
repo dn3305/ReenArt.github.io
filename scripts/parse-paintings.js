@@ -157,14 +157,14 @@ async function run() {
     const id = getValue('id');
     const title = getValue('title');
     const series = getValue('series');
-    const size = getValue('size');
+    const size = getValue('size') || getValue('dimensions');
     const medium = getValue('medium');
     const priceRaw = getValue('price');
     const status = getValue('status').toLowerCase() === 'sold' ? 'sold' : 'available';
     const year = getValue('year') || new Date().getFullYear().toString();
     const imagesRaw = getValue('images');
     const description = getValue('description');
-    const details = getValue('details');
+    const details = getValue('details') || getValue('additionalinfo');
 
     if (!id || !title) {
       console.warn(`Warning: Row ${idx + 2} is missing ID or Title, skipping.`);

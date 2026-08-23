@@ -6,6 +6,8 @@ interface Props {
   params: Promise<{ id: string }>;
 }
 
+export const dynamic = 'force-dynamic';
+
 // Generate static params for Next.js build optimization
 export async function generateStaticParams() {
   return paintings.map((painting) => ({
