@@ -46,14 +46,22 @@ async function pushCsvToGitHub(csvContent: string, token: string) {
 
 // --- CSV helpers ---
 
-function readCsvLines(): string[] {
+async function fetchGitHubCsv(): Promise<string | null> {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/paintings.csv?t=${Date.now()}`, {
+      cache: 'no-store'
+    });
+    if (res.ok) return await res.text();
+  } catch (e) {}
+  return null;
+}
+
+function readCsvLinesLocal(): string[] {
   try {
     const raw = fs.readFileSync(CSV_PATH, 'utf-8');
     return raw.split('\n');
   } catch (e) {
-    return [
-      'id,title,series,dimensions,medium,price,status,year,images,description,additionalInfo',
-    ];
+    return [];
   }
 }
 
@@ -105,7 +113,15 @@ function paintingFromRow(cols: string[]) {
 
 // GET — return all paintings as JSON
 export async function GET() {
-  const lines = readCsvLines();
+  let rawCsv = await fetchGitHubCsv();
+  if (!rawCsv) {
+    try {
+      rawCsv = fs.readFileSync(CSV_PATH, 'utf-8');
+    } catch (e) {
+      rawCsv = '';
+    }
+  }
+  const lines = rawCsv.split('\n');
   const header = lines[0];
   const paintings = lines
     .slice(1)
