@@ -154,7 +154,11 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
       if (data.success) {
         setUploadedFiles(prev => [...prev, data.filename]);
         onUploaded(data.filename);
+      } else {
+        alert(data.error || 'Upload failed');
       }
+    } catch (err) {
+      alert('Failed to upload file');
     } finally {
       setUploading(false);
     }
@@ -167,7 +171,9 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
   }
 
   function onFileChange(e: ChangeEvent<HTMLInputElement>) {
-    if (e.target.files) Array.from(e.target.files).forEach(uploadFile);
+    if (e.target.files) {
+      Array.from(e.target.files).forEach(uploadFile);
+    }
   }
 
   return (
@@ -178,34 +184,42 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
         onDrop={onDrop}
         onClick={() => fileRef.current?.click()}
         style={{
-          border: `2px dashed ${dragging ? '#c9a84c' : 'rgba(255,255,255,0.15)'}`,
+          border: `2px dashed ${dragging ? '#c9a84c' : 'rgba(201,168,76,0.3)'}`,
           borderRadius: '10px',
           padding: '2rem',
           textAlign: 'center',
           cursor: 'pointer',
-          transition: 'border-color 0.2s, background 0.2s',
-          background: dragging ? 'rgba(201,168,76,0.06)' : 'transparent',
-          color: '#777',
+          transition: 'all 0.2s',
+          background: dragging ? 'rgba(201,168,76,0.1)' : 'rgba(255,255,255,0.02)',
+          color: '#aaa',
           fontSize: '0.9rem',
         }}
       >
         {uploading ? (
-          <span>Uploading…</span>
+          <span style={{ color: '#c9a84c' }}>Uploading & converting image...</span>
         ) : (
           <>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📁</div>
-            <div>Drop images here or <span style={{ color: '#c9a84c' }}>click to browse</span></div>
-            <div style={{ fontSize: '0.75rem', marginTop: '0.4rem' }}>Supports JPG, PNG, HEIC</div>
+            <div>Drop images here or <span style={{ color: '#c9a84c', fontWeight: 600 }}>click to browse</span></div>
+            <div style={{ fontSize: '0.75rem', marginTop: '0.4rem', color: '#666' }}>Supports JPG, PNG, HEIC</div>
           </>
         )}
       </div>
-      <input ref={fileRef} type="file" accept="image/*,.heic,.heif" multiple hidden onChange={onFileChange} />
+      <input 
+        ref={fileRef} 
+        type="file" 
+        accept="image/*,.heic,.heif" 
+        multiple 
+        style={{ display: 'none' }} 
+        onChange={onFileChange} 
+      />
       {uploadedFiles.length > 0 && (
         <div style={{ marginTop: '0.75rem', display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
           {uploadedFiles.map(f => (
             <span key={f} style={{
               background: 'rgba(201,168,76,0.15)', border: '1px solid rgba(201,168,76,0.3)',
               borderRadius: '6px', padding: '0.25rem 0.6rem', fontSize: '0.78rem', color: '#e8c96a',
+              display: 'flex', alignItems: 'center', gap: '0.4rem'
             }}>
               ✓ {f}
             </span>
@@ -324,6 +338,22 @@ function PaintingForm({
           onChange={e => set('images', e.target.value)}
           placeholder="painting1.jpg, painting2.jpg"
         />
+        {/* Thumbnail preview list */}
+        {form.images && (
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
+            {form.images.split(',').map(s => s.trim()).filter(Boolean).map((img, idx) => {
+              const src = img.startsWith('http') ? img : `/images/${img}`;
+              return (
+                <div key={idx} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+                  <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                  {idx === 0 && (
+                    <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(201,168,76,0.9)', color: '#000', fontSize: '0.6rem', textAlign: 'center', fontWeight: 'bold', padding: '1px 0' }}>MAIN</span>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
         <div style={{ marginTop: '0.75rem' }}>
           <label style={S.label}>UPLOAD IMAGES</label>
           <ImageDropzone onUploaded={addImageToForm} />

@@ -4,9 +4,9 @@ import { paintings } from "./data/paintings";
 
 export default function Home() {
   // Select 3 featured paintings
-  const featuredPaintings = paintings.filter(p => 
-    p.id === "echoes-of-closeness" || 
-    p.id === "crimson-catharsis" || 
+  const featuredPaintings = paintings.filter(p =>
+    p.id === "echoes-of-closeness" ||
+    p.id === "crimson-catharsis" ||
     p.id === "zen-flow"
   );
 
@@ -74,7 +74,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col gap-4">
             <h2 className="font-serif text-3xl md:text-4xl font-light tracking-wide italic text-accent">
-              \"My paintings are thresholds to unexpressed feelings—where tension dissolves into texture.\"
+              "My paintings are thresholds to unexpressed feelings—where tension dissolves into texture."
             </h2>
           </div>
           <div className="flex flex-col gap-6 text-sm font-light text-muted leading-relaxed tracking-wide">
@@ -96,8 +96,8 @@ export default function Home() {
               <span className="text-[10px] tracking-[0.3em] uppercase text-accent font-medium">Selected Works</span>
               <h2 className="font-serif text-3xl md:text-4xl font-light tracking-wide text-foreground">Featured Paintings</h2>
             </div>
-            <Link 
-              href="/gallery" 
+            <Link
+              href="/gallery"
               className="text-xs uppercase tracking-widest text-accent hover:text-foreground transition-colors group flex items-center gap-2"
             >
               See all pieces <span className="group-hover:translate-x-1 transition-transform inline-block">→</span>
@@ -107,8 +107,8 @@ export default function Home() {
           {/* Grid Layout */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {featuredPaintings.map((painting) => (
-              <Link 
-                key={painting.id} 
+              <Link
+                key={painting.id}
                 href={`/gallery/${painting.id}`}
                 className="group flex flex-col gap-4"
               >
