@@ -5,44 +5,56 @@ import path from 'path';
 const REPO = 'dn3305/ReenArt.github.io';
 const BRANCH = 'main';
 
+async function pushToGitHubOnce(filename: string, buffer: Buffer, token: string): Promise<boolean> {
+  const base64Content = buffer.toString('base64');
+  const filePath = `public/images/${filename}`;
+
+  // Get SHA if exists
+  let sha: string | null = null;
+  const getRes = await fetch(
+    `https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`,
+    { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }, cache: 'no-store' }
+  );
+  if (getRes.ok) {
+    const data = await getRes.json();
+    sha = data.sha ?? null;
+  }
+
+  const body: Record<string, unknown> = {
+    message: `🖼️ Upload image: ${filename}`,
+    content: base64Content,
+    branch: BRANCH,
+  };
+  if (sha) body.sha = sha;
+
+  const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
+    method: 'PUT',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      Accept: 'application/vnd.github+json',
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(body),
+  });
+
+  return putRes.ok;
+}
+
 async function pushToGitHub(filename: string, buffer: Buffer, token?: string) {
   if (!token) return false;
   try {
-    const base64Content = buffer.toString('base64');
-    const filePath = `public/images/${filename}`;
-
-    // Get SHA if exists
-    let sha: string | null = null;
-    const getRes = await fetch(
-      `https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`,
-      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } }
-    );
-    if (getRes.ok) {
-      const data = await getRes.json();
-      sha = data.sha ?? null;
-    }
-
-    const body: Record<string, unknown> = {
-      message: `🖼️ Upload image: ${filename}`,
-      content: base64Content,
-      branch: BRANCH,
-    };
-    if (sha) body.sha = sha;
-
-    const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-      method: 'PUT',
-      headers: {
-        Authorization: `Bearer ${token}`,
-        Accept: 'application/vnd.github+json',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    });
-
-    return putRes.ok;
+    if (await pushToGitHubOnce(filename, buffer, token)) return true;
+    // Retry once — covers transient failures and a stale-sha conflict from a
+    // near-simultaneous write elsewhere in the repo.
+    return await pushToGitHubOnce(filename, buffer, token);
   } catch (err) {
     console.error('GitHub push error:', err);
-    return false;
+    try {
+      return await pushToGitHubOnce(filename, buffer, token);
+    } catch (err2) {
+      console.error('GitHub push retry error:', err2);
+      return false;
+    }
   }
 }
 
@@ -98,6 +110,20 @@ export async function POST(req: Request) {
     let pushedToGitHub = false;
     if (token) {
       pushedToGitHub = await pushToGitHub(savedName, buffer, token);
+    }
+
+    // Without a token, or if the GitHub push itself failed, the file only ever
+    // existed in this request's memory — nothing was actually persisted
+    // anywhere the site can read it back from. Report that as a failure
+    // instead of success:true, otherwise the dashboard adds a filename to the
+    // painting that doesn't actually exist, producing a broken image.
+    if (!pushedToGitHub) {
+      return NextResponse.json({
+        success: false,
+        error: token
+          ? 'Upload to GitHub failed — try uploading this image again'
+          : 'No GitHub token configured (see GitHub Settings tab) — image was not saved',
+      }, { status: 502 });
     }
 
     return NextResponse.json({

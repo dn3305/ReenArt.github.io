@@ -144,26 +144,39 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function uploadFile(file: File) {
-    setUploading(true);
+  async function uploadFile(file: File): Promise<boolean> {
     try {
       const fd = new FormData();
       fd.append('file', file);
       const savedToken = localStorage.getItem('ra_gh_token') || '';
       const headers: Record<string, string> = {};
       if (savedToken) headers['x-github-token'] = savedToken;
-      
+
       const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, headers });
       const data = await res.json();
       if (data.success) {
         setUploadedFiles(prev => [...prev, data.filename]);
-        // If dataUri returned, pass it or filename
         onUploaded(data.filename);
+        return true;
       } else {
-        alert(data.error || 'Upload failed');
+        alert(`${file.name}: ${data.error || 'Upload failed'}`);
+        return false;
       }
     } catch (err) {
-      alert('Failed to upload file');
+      alert(`${file.name}: Failed to upload file`);
+      return false;
+    }
+  }
+
+  // Uploaded one at a time (not in parallel) — concurrent writes to the
+  // GitHub repo from several uploads at once can race each other and silently
+  // drop one, which previously produced a broken image reference.
+  async function uploadFiles(files: File[]) {
+    setUploading(true);
+    try {
+      for (const file of files) {
+        await uploadFile(file);
+      }
     } finally {
       setUploading(false);
     }
@@ -171,13 +184,12 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
 
   function onDrop(e: DragEvent) {
     e.preventDefault(); setDragging(false);
-    const files = Array.from(e.dataTransfer.files);
-    files.forEach(uploadFile);
+    uploadFiles(Array.from(e.dataTransfer.files));
   }
 
   function onFileChange(e: ChangeEvent<HTMLInputElement>) {
     if (e.target.files) {
-      Array.from(e.target.files).forEach(uploadFile);
+      uploadFiles(Array.from(e.target.files));
     }
   }
 
@@ -263,6 +275,28 @@ function PaintingForm({
     }));
   }
 
+  function getImageList(): string[] {
+    return form.images.split(',').map(s => s.trim()).filter(Boolean);
+  }
+
+  function setImageList(list: string[]) {
+    set('images', list.join(', '));
+  }
+
+  function removeImageAt(idx: number) {
+    const list = getImageList();
+    list.splice(idx, 1);
+    setImageList(list);
+  }
+
+  function moveImage(idx: number, dir: -1 | 1) {
+    const list = getImageList();
+    const target = idx + dir;
+    if (target < 0 || target >= list.length) return;
+    [list[idx], list[target]] = [list[target], list[idx]];
+    setImageList(list);
+  }
+
   const grid2: React.CSSProperties = {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
   };
@@ -343,17 +377,45 @@ function PaintingForm({
           onChange={e => set('images', e.target.value)}
           placeholder="painting1.jpg, painting2.jpg"
         />
-        {/* Thumbnail preview list */}
+        {/* Thumbnail preview list, with reorder / remove controls */}
         {form.images && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
-            {form.images.split(',').map(s => s.trim()).filter(Boolean).map((img, idx) => {
+            {getImageList().map((img, idx, arr) => {
               const src = img.startsWith('http') ? img : `/images/${img}`;
               return (
-                <div key={idx} style={{ position: 'relative', width: '70px', height: '70px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
-                  <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  {idx === 0 && (
-                    <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(201,168,76,0.9)', color: '#000', fontSize: '0.6rem', textAlign: 'center', fontWeight: 'bold', padding: '1px 0' }}>MAIN</span>
-                  )}
+                <div key={idx} style={{ position: 'relative', width: '84px' }}>
+                  <div style={{ position: 'relative', width: '84px', height: '84px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
+                    <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    {idx === 0 && (
+                      <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(201,168,76,0.9)', color: '#000', fontSize: '0.6rem', textAlign: 'center', fontWeight: 'bold', padding: '1px 0' }}>MAIN</span>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => removeImageAt(idx)}
+                      title="Remove image"
+                      style={{
+                        position: 'absolute', top: '3px', right: '3px', width: '20px', height: '20px',
+                        borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.7)', color: '#fca5a5',
+                        fontSize: '0.75rem', lineHeight: '20px', textAlign: 'center', cursor: 'pointer', padding: 0,
+                      }}
+                    >×</button>
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '0.3rem', marginTop: '0.3rem' }}>
+                    <button
+                      type="button"
+                      onClick={() => moveImage(idx, -1)}
+                      disabled={idx === 0}
+                      title="Move earlier"
+                      style={{ ...S.btnGhost, padding: '0.15rem 0.5rem', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }}
+                    >◀</button>
+                    <button
+                      type="button"
+                      onClick={() => moveImage(idx, 1)}
+                      disabled={idx === arr.length - 1}
+                      title="Move later"
+                      style={{ ...S.btnGhost, padding: '0.15rem 0.5rem', fontSize: '0.7rem', opacity: idx === arr.length - 1 ? 0.3 : 1 }}
+                    >▶</button>
+                  </div>
                 </div>
               );
             })}

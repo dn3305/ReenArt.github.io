@@ -16,5 +16,24 @@ export interface Painting {
   year: string;
 }
 
-export const paintings: Painting[] = [];
+export const paintings: Painting[] = [
+  {
+    "id": "echoes-of-closeness",
+    "title": "Attachment 1",
+    "series": "Attachment",
+    "size": "13\"x12\"",
+    "medium": "Ink on paper",
+    "price": 250,
+    "formattedPrice": "$250",
+    "description": "Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.",
+    "details": "* Edition: Original (1/1)\n* Framing: Unframed(with mount)\n* Signed: Signed on both the front and back\n* Certificate of Authenticity: Included",
+    "images": [
+      "/images/IMG_3269.jpg",
+      "/images/IMG_9449.jpg",
+      "/images/IMG_9462.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  }
+];
 
