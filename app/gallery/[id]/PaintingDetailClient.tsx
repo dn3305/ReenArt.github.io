@@ -14,6 +14,7 @@ export default function PaintingDetailClient({ painting }: Props) {
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formSubmitted, setFormSubmitted] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -21,15 +22,35 @@ export default function PaintingDetailClient({ painting }: Props) {
     message: `Hello Nazia,\n\nI am interested in acquiring your painting "${painting.title}" from the ${painting.series} series. Please let me know its availability, delivery options, and additional details.\n\nThank you.`
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
-    // Simulate API request to backend/email system
-    setTimeout(() => {
+    setFormError(null);
+    try {
+      const fullMessage = formData.phone
+        ? `${formData.message}\n\nPhone: ${formData.phone}`
+        : formData.message;
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          subject: `Artwork Acquisition — ${painting.title}`,
+          message: fullMessage,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setFormSubmitted(true);
+      } else {
+        setFormError(data.error || 'Failed to send your inquiry. Please try again.');
+      }
+    } catch (err) {
+      setFormError('Failed to send your inquiry. Please check your connection and try again.');
+    } finally {
       setIsSubmitting(false);
-      setFormSubmitted(true);
-    }, 1500);
+    }
   };
 
   const closeInquiry = () => {
@@ -208,6 +229,11 @@ export default function PaintingDetailClient({ painting }: Props) {
                 </div>
 
                 <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+                  {formError && (
+                    <div className="border border-red-400/40 bg-red-500/10 text-red-400 text-xs tracking-wide px-4 py-3">
+                      {formError}
+                    </div>
+                  )}
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Your Name *</label>
                     <input
