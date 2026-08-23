@@ -16,7 +16,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Nazia | Fine Art Portfolio & Gallery",
+  title: "ReenArt",
   description: "Explore original paintings, mixed media, and digital art series by Nazia. Minimalist portfolio and gallery featuring available works for collectors.",
 };
 
@@ -43,10 +43,10 @@ export default function RootLayout({
             >
               <Image
                 src={LOGO_BASE64}
-                alt="Nazia – Fine Art"
-                width={120}
+                alt="ReenArt – Fine Art by Nazia Naureen"
+                width={48}
                 height={48}
-                className="h-12 w-auto object-contain"
+                className="h-12 w-12 object-contain"
                 priority
                 unoptimized
               />
@@ -87,10 +87,10 @@ export default function RootLayout({
             <div className="flex flex-col gap-2 text-center md:text-left items-center md:items-start">
               <Image
                 src={LOGO_BASE64}
-                alt="Nazia – Fine Art"
-                width={80}
+                alt="ReenArt – Fine Art by Nazia Naureen"
+                width={32}
                 height={32}
-                className="h-8 w-auto object-contain opacity-80"
+                className="h-8 w-8 object-contain opacity-80"
                 unoptimized
               />
               <p className="text-[10px] text-muted tracking-wider">Visual Artist & Painter</p>
