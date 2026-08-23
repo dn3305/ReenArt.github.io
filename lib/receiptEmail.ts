@@ -1,5 +1,6 @@
 const ARTIST_EMAIL = 'naureennaz00@gmail.com';
 const FROM_EMAIL = 'ReenArt Studio <onboarding@resend.dev>';
+const SITE_URL = 'https://reenart.com';
 
 function escapeHtml(s: string): string {
   return s
@@ -35,6 +36,7 @@ function describeMethod(method?: string, details?: Record<string, unknown>): str
 }
 
 export interface ReceiptDetails {
+  invoiceNumber: string;
   paintingTitle: string;
   orderId: string;
   paymentId: string;
@@ -45,6 +47,12 @@ export interface ReceiptDetails {
   buyerEmail: string;
   method?: string;
   methodDetails?: Record<string, unknown>;
+  shipAddress: string;
+  shipCity: string;
+  shipState: string;
+  shipPincode: string;
+  shipCountry: string;
+  pdfBuffer: Buffer;
 }
 
 export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean> {
@@ -60,12 +68,14 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
     timeStyle: 'short',
   });
   const methodFormatted = describeMethod(details.method, details.methodDetails);
+  const downloadUrl = `${SITE_URL}/api/invoice/${encodeURIComponent(details.paymentId)}`;
 
   const html = `
     <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto;">
       <h2 style="font-weight: 300; letter-spacing: 0.05em;">Payment Receipt</h2>
       <p>Thank you for your purchase, ${escapeHtml(details.buyerName)}.</p>
       <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px;">
+        <tr><td style="padding: 8px 0; color: #888;">Invoice Number</td><td style="padding: 8px 0; text-align: right;"><strong>${escapeHtml(details.invoiceNumber)}</strong></td></tr>
         <tr><td style="padding: 8px 0; color: #888;">Artwork</td><td style="padding: 8px 0; text-align: right;"><strong>${escapeHtml(details.paintingTitle)}</strong></td></tr>
         <tr><td style="padding: 8px 0; color: #888;">Amount Paid</td><td style="padding: 8px 0; text-align: right;"><strong>${amountFormatted} ${details.currency}</strong></td></tr>
         <tr><td style="padding: 8px 0; color: #888;">Date</td><td style="padding: 8px 0; text-align: right;">${dateFormatted}</td></tr>
@@ -73,8 +83,22 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
         <tr><td style="padding: 8px 0; color: #888;">Order ID</td><td style="padding: 8px 0; text-align: right; font-family: monospace; font-size: 12px;">${escapeHtml(details.orderId)}</td></tr>
         <tr><td style="padding: 8px 0; color: #888;">Payment ID</td><td style="padding: 8px 0; text-align: right; font-family: monospace; font-size: 12px;">${escapeHtml(details.paymentId)}</td></tr>
       </table>
+
+      <div style="margin-top: 20px; padding: 12px 16px; background: #f7f5f2; font-size: 13px; color: #444;">
+        <strong>Shipping To</strong><br/>
+        ${escapeHtml(details.shipAddress)}<br/>
+        ${escapeHtml(details.shipCity)}, ${escapeHtml(details.shipState)} ${escapeHtml(details.shipPincode)}<br/>
+        ${escapeHtml(details.shipCountry)}
+      </div>
+
+      <div style="text-align: center; margin-top: 28px;">
+        <a href="${downloadUrl}" style="display: inline-block; padding: 12px 28px; background: #c9a84c; color: #fff; text-decoration: none; font-size: 12px; letter-spacing: 0.1em; text-transform: uppercase;">
+          Download Invoice (PDF)
+        </a>
+      </div>
+
       <p style="margin-top: 24px; font-size: 13px; color: #666;">
-        Nazia will be in touch shortly with shipping details. Keep this receipt for your records.
+        Nazia will be in touch shortly with shipping updates. A PDF copy of this invoice is attached, and always available at the link above.
       </p>
     </div>
   `;
@@ -90,8 +114,14 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
         from: FROM_EMAIL,
         to: [details.buyerEmail],
         bcc: [ARTIST_EMAIL],
-        subject: `Payment Receipt — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`,
+        subject: `Invoice ${details.invoiceNumber} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`,
         html,
+        attachments: [
+          {
+            filename: `${details.invoiceNumber}.pdf`,
+            content: details.pdfBuffer.toString('base64'),
+          },
+        ],
       }),
     });
     if (!res.ok) {

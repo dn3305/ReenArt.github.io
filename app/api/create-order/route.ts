@@ -19,9 +19,17 @@ export async function POST(req: Request) {
     const payCurrency = body.currency === 'INR' ? 'INR' : 'USD';
     const payerName = String(body.payerName || '').trim();
     const payerEmail = String(body.payerEmail || '').trim();
+    const shipAddress = String(body.shipAddress || '').trim();
+    const shipCity = String(body.shipCity || '').trim();
+    const shipState = String(body.shipState || '').trim();
+    const shipPincode = String(body.shipPincode || '').trim();
+    const shipCountry = String(body.shipCountry || '').trim();
 
     if (!payerName || !payerEmail) {
       return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 });
+    }
+    if (!shipAddress || !shipCity || !shipState || !shipPincode || !shipCountry) {
+      return NextResponse.json({ error: 'Complete shipping address is required.' }, { status: 400 });
     }
 
     // Prices are never trusted from the client — look up the real, current
@@ -68,6 +76,11 @@ export async function POST(req: Request) {
           priceUsd: String(painting.price),
           payerName,
           payerEmail,
+          shipAddress,
+          shipCity,
+          shipState,
+          shipPincode,
+          shipCountry,
           ...(rateUsed ? { usdToInrRate: String(rateUsed) } : {}),
         },
       });

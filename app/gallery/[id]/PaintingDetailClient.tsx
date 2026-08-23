@@ -63,6 +63,11 @@ export default function PaintingDetailClient({ painting }: Props) {
   const [payError, setPayError] = useState<string | null>(null);
   const [payerName, setPayerName] = useState('');
   const [payerEmail, setPayerEmail] = useState('');
+  const [shipAddress, setShipAddress] = useState('');
+  const [shipCity, setShipCity] = useState('');
+  const [shipState, setShipState] = useState('');
+  const [shipPincode, setShipPincode] = useState('');
+  const [shipCountry, setShipCountry] = useState('');
   const [razorpayReady, setRazorpayReady] = useState(false);
   const [payCurrency, setPayCurrency] = useState<'USD' | 'INR'>('USD');
   const [inrPreview, setInrPreview] = useState<number | null>(null);
@@ -74,6 +79,11 @@ export default function PaintingDetailClient({ painting }: Props) {
     setPayError(null);
     setPayerName('');
     setPayerEmail('');
+    setShipAddress('');
+    setShipCity('');
+    setShipState('');
+    setShipPincode('');
+    setShipCountry('');
     setPayCurrency('USD');
     setInrPreview(null);
   };
@@ -104,6 +114,10 @@ export default function PaintingDetailClient({ painting }: Props) {
       setPayError('Please enter your name and email before paying.');
       return;
     }
+    if (!shipAddress.trim() || !shipCity.trim() || !shipState.trim() || !shipPincode.trim() || !shipCountry.trim()) {
+      setPayError('Please complete your full shipping address, including PIN/ZIP code.');
+      return;
+    }
     if (!razorpayReady || !window.Razorpay) {
       setPayError('Payment is still loading — please wait a moment and try again.');
       return;
@@ -119,6 +133,11 @@ export default function PaintingDetailClient({ painting }: Props) {
           currency: payCurrency,
           payerName,
           payerEmail,
+          shipAddress,
+          shipCity,
+          shipState,
+          shipPincode,
+          shipCountry,
         }),
       });
       const orderData = await orderRes.json();
@@ -570,6 +589,68 @@ export default function PaintingDetailClient({ painting }: Props) {
                       placeholder="e.g. john@example.com"
                       className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
+                  </div>
+
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Shipping Address *</label>
+                    <input
+                      type="text"
+                      required
+                      value={shipAddress}
+                      onChange={(e) => setShipAddress(e.target.value)}
+                      placeholder="Street address, apartment, etc."
+                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-muted font-medium">City *</label>
+                      <input
+                        type="text"
+                        required
+                        value={shipCity}
+                        onChange={(e) => setShipCity(e.target.value)}
+                        placeholder="e.g. Delhi"
+                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-muted font-medium">State / Province *</label>
+                      <input
+                        type="text"
+                        required
+                        value={shipState}
+                        onChange={(e) => setShipState(e.target.value)}
+                        placeholder="e.g. Delhi"
+                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-muted font-medium">PIN / ZIP Code *</label>
+                      <input
+                        type="text"
+                        required
+                        value={shipPincode}
+                        onChange={(e) => setShipPincode(e.target.value)}
+                        placeholder="e.g. 110001"
+                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      />
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Country *</label>
+                      <input
+                        type="text"
+                        required
+                        value={shipCountry}
+                        onChange={(e) => setShipCountry(e.target.value)}
+                        placeholder="e.g. India"
+                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      />
+                    </div>
                   </div>
 
                   <button

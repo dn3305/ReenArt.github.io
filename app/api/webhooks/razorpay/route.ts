@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { readCsvRowsLive, rowsToCsv, pushCsvToGitHub, CSV_COLUMNS } from '../../../../lib/paintingsCsv';
+import { appendSoldRecord } from '../../../../lib/soldCsv';
+import { generateInvoicePdf } from '../../../../lib/invoicePdf';
 import { sendReceiptEmail } from '../../../../lib/receiptEmail';
 
 interface RazorpayPaymentEntity {
@@ -66,6 +68,11 @@ export async function POST(req: Request) {
   const paintingId = notes.paintingId;
   const buyerName = notes.payerName || 'Collector';
   const buyerEmail = notes.payerEmail;
+  const shipAddress = notes.shipAddress || '';
+  const shipCity = notes.shipCity || '';
+  const shipState = notes.shipState || '';
+  const shipPincode = notes.shipPincode || '';
+  const shipCountry = notes.shipCountry || '';
 
   if (!paintingId || !buyerEmail) {
     console.error('Webhook payment missing paintingId/payerEmail in notes:', payment.id);
@@ -94,12 +101,14 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true, alreadyProcessed: true });
   }
 
+  const paintingTitle = notes.paintingTitle || paintingId;
+
   rows[rowIdx][statusIdx] = 'sold';
   const newCsvContent = rowsToCsv(rows);
   const pushed = await pushCsvToGitHub(
     newCsvContent,
     githubToken,
-    `💰 Mark "${notes.paintingTitle || paintingId}" as sold (payment ${payment.id})`
+    `💰 Mark "${paintingTitle}" as sold (payment ${payment.id})`
   );
 
   if (!pushed) {
@@ -107,6 +116,29 @@ export async function POST(req: Request) {
     // status above each time.
     return NextResponse.json({ error: 'Failed to update painting status.' }, { status: 500 });
   }
+
+  const paidAt = new Date(payment.created_at * 1000);
+
+  const { invoiceNumber } = await appendSoldRecord(
+    {
+      paintingId,
+      paintingTitle,
+      orderId: payment.order_id,
+      paymentId: payment.id,
+      amount: payment.amount,
+      currency: payment.currency,
+      buyerName,
+      buyerEmail,
+      method: payment.method || '',
+      paidAt: paidAt.toISOString(),
+      shipAddress,
+      shipCity,
+      shipState,
+      shipPincode,
+      shipCountry,
+    },
+    githubToken
+  );
 
   const methodDetails = payment.method === 'upi'
     ? { vpa: payment.vpa }
@@ -118,18 +150,43 @@ export async function POST(req: Request) {
           ? { wallet: payment.wallet }
           : undefined;
 
+  const pdfBuffer = await generateInvoicePdf({
+    invoiceNumber,
+    paintingTitle,
+    amount: payment.amount,
+    currency: payment.currency,
+    paidAt,
+    buyerName,
+    buyerEmail,
+    method: payment.method || '',
+    orderId: payment.order_id,
+    paymentId: payment.id,
+    shipAddress,
+    shipCity,
+    shipState,
+    shipPincode,
+    shipCountry,
+  });
+
   await sendReceiptEmail({
-    paintingTitle: notes.paintingTitle || paintingId,
+    invoiceNumber,
+    paintingTitle,
     orderId: payment.order_id,
     paymentId: payment.id,
     amount: payment.amount,
     currency: payment.currency,
-    paidAt: new Date(payment.created_at * 1000),
+    paidAt,
     buyerName,
     buyerEmail,
     method: payment.method,
     methodDetails,
+    shipAddress,
+    shipCity,
+    shipState,
+    shipPincode,
+    shipCountry,
+    pdfBuffer,
   });
 
-  return NextResponse.json({ received: true });
+  return NextResponse.json({ received: true, invoiceNumber });
 }

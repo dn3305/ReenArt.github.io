@@ -136,6 +136,54 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
   );
 }
 
+// ─── Client-side image compression ─────────────────────────────────────────
+
+const MAX_UPLOAD_DIMENSION = 2000; // longest side, px
+const TARGET_MAX_BYTES = 300 * 1024; // 300KB
+const MIN_JPEG_QUALITY = 0.5;
+
+// Resizes and re-encodes an image in the browser before it ever leaves the
+// device, so a multi-megabyte phone photo doesn't get uploaded (and stored
+// on GitHub) at full resolution. HEIC/HEIF files are left untouched here —
+// browsers other than Safari can't decode them into a <canvas>, and the
+// server already converts those via heic-convert.
+async function compressImageForUpload(file: File): Promise<File> {
+  const ext = file.name.split('.').pop()?.toLowerCase() || '';
+  if (ext === 'heic' || ext === 'heif') return file;
+  if (!file.type.startsWith('image/')) return file;
+
+  try {
+    const bitmap = await createImageBitmap(file);
+    let { width, height } = bitmap;
+    if (width > MAX_UPLOAD_DIMENSION || height > MAX_UPLOAD_DIMENSION) {
+      const scale = MAX_UPLOAD_DIMENSION / Math.max(width, height);
+      width = Math.round(width * scale);
+      height = Math.round(height * scale);
+    }
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.drawImage(bitmap, 0, 0, width, height);
+
+    let quality = 0.85;
+    let blob: Blob | null = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    while (blob && blob.size > TARGET_MAX_BYTES && quality > MIN_JPEG_QUALITY) {
+      quality -= 0.1;
+      blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    }
+    if (!blob) return file;
+
+    const newName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], newName, { type: 'image/jpeg' });
+  } catch (err) {
+    console.error('Client-side image compression failed, uploading original:', err);
+    return file;
+  }
+}
+
 // ─── Image Dropzone ───────────────────────────────────────────────────────────
 
 function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void }) {
@@ -144,8 +192,9 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function uploadFile(file: File): Promise<boolean> {
+  async function uploadFile(originalFile: File): Promise<boolean> {
     try {
+      const file = await compressImageForUpload(originalFile);
       const fd = new FormData();
       fd.append('file', file);
       const savedToken = localStorage.getItem('ra_gh_token') || '';
@@ -163,7 +212,7 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
         return false;
       }
     } catch (err) {
-      alert(`${file.name}: Failed to upload file`);
+      alert(`${originalFile.name}: Failed to upload file`);
       return false;
     }
   }
