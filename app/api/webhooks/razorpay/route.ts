@@ -1,27 +1,9 @@
 import { NextResponse } from 'next/server';
 import crypto from 'crypto';
-import { readCsvRowsLive, rowsToCsv, pushCsvToGitHub, CSV_COLUMNS } from '../../../../lib/paintingsCsv';
-import { appendSoldRecord } from '../../../../lib/soldCsv';
-import { generateInvoicePdf } from '../../../../lib/invoicePdf';
-import { sendReceiptEmail } from '../../../../lib/receiptEmail';
-
-interface RazorpayPaymentEntity {
-  id: string;
-  order_id: string;
-  amount: number;
-  currency: string;
-  method?: string;
-  card?: { last4?: string; network?: string };
-  vpa?: string;
-  bank?: string;
-  wallet?: string;
-  created_at: number;
-  notes?: Record<string, string>;
-}
+import { processCapturedPayment, RazorpayPaymentEntity } from '../../../../lib/processCapturedPayment';
 
 export async function POST(req: Request) {
   const webhookSecret = process.env.RAZORPAY_WEBHOOK_SECRET;
-  const githubToken = process.env.GITHUB_TOKEN;
 
   if (!webhookSecret) {
     console.error('RAZORPAY_WEBHOOK_SECRET not configured.');
@@ -64,129 +46,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Missing payment entity.' }, { status: 400 });
   }
 
-  const notes = payment.notes || {};
-  const paintingId = notes.paintingId;
-  const buyerName = notes.payerName || 'Collector';
-  const buyerEmail = notes.payerEmail;
-  const shipAddress = notes.shipAddress || '';
-  const shipCity = notes.shipCity || '';
-  const shipState = notes.shipState || '';
-  const shipPincode = notes.shipPincode || '';
-  const shipCountry = notes.shipCountry || '';
-
-  if (!paintingId || !buyerEmail) {
-    console.error('Webhook payment missing paintingId/payerEmail in notes:', payment.id);
-    return NextResponse.json({ error: 'Missing order metadata.' }, { status: 400 });
+  const result = await processCapturedPayment(payment);
+  if (!result.ok) {
+    // Return 500 (so Razorpay retries) only for genuinely retryable failures —
+    // idempotency in processCapturedPayment makes retries safe.
+    return NextResponse.json({ error: result.error }, { status: result.retryable ? 500 : 400 });
   }
 
-  if (!githubToken) {
-    console.error('GITHUB_TOKEN not configured — cannot mark painting sold.');
-    return NextResponse.json({ error: 'Server not fully configured.' }, { status: 500 });
-  }
-
-  // Idempotency: Razorpay can and does retry webhook delivery. If this
-  // painting is already marked sold, this event was already processed —
-  // acknowledge without re-emailing or re-committing.
-  const rows = await readCsvRowsLive(githubToken);
-  const statusIdx = CSV_COLUMNS.indexOf('status');
-  const idIdx = CSV_COLUMNS.indexOf('id');
-  const rowIdx = rows.findIndex((r, i) => i > 0 && r[idIdx] === paintingId);
-
-  if (rowIdx === -1) {
-    console.error('Webhook: painting not found for id', paintingId);
-    return NextResponse.json({ error: 'Painting not found.' }, { status: 400 });
-  }
-
-  if (rows[rowIdx][statusIdx] === 'sold') {
-    return NextResponse.json({ received: true, alreadyProcessed: true });
-  }
-
-  const paintingTitle = notes.paintingTitle || paintingId;
-
-  rows[rowIdx][statusIdx] = 'sold';
-  const newCsvContent = rowsToCsv(rows);
-  const pushed = await pushCsvToGitHub(
-    newCsvContent,
-    githubToken,
-    `💰 Mark "${paintingTitle}" as sold (payment ${payment.id})`
-  );
-
-  if (!pushed) {
-    // Return 500 so Razorpay retries — safe to retry since we re-check
-    // status above each time.
-    return NextResponse.json({ error: 'Failed to update painting status.' }, { status: 500 });
-  }
-
-  const paidAt = new Date(payment.created_at * 1000);
-
-  const { invoiceNumber } = await appendSoldRecord(
-    {
-      paintingId,
-      paintingTitle,
-      orderId: payment.order_id,
-      paymentId: payment.id,
-      amount: payment.amount,
-      currency: payment.currency,
-      buyerName,
-      buyerEmail,
-      method: payment.method || '',
-      paidAt: paidAt.toISOString(),
-      shipAddress,
-      shipCity,
-      shipState,
-      shipPincode,
-      shipCountry,
-    },
-    githubToken
-  );
-
-  const methodDetails = payment.method === 'upi'
-    ? { vpa: payment.vpa }
-    : payment.method === 'card'
-      ? { last4: payment.card?.last4, network: payment.card?.network }
-      : payment.method === 'netbanking'
-        ? { bank: payment.bank }
-        : payment.method === 'wallet'
-          ? { wallet: payment.wallet }
-          : undefined;
-
-  const pdfBuffer = await generateInvoicePdf({
-    invoiceNumber,
-    paintingTitle,
-    amount: payment.amount,
-    currency: payment.currency,
-    paidAt,
-    buyerName,
-    buyerEmail,
-    method: payment.method || '',
-    orderId: payment.order_id,
-    paymentId: payment.id,
-    shipAddress,
-    shipCity,
-    shipState,
-    shipPincode,
-    shipCountry,
-  });
-
-  await sendReceiptEmail({
-    invoiceNumber,
-    paintingTitle,
-    orderId: payment.order_id,
-    paymentId: payment.id,
-    amount: payment.amount,
-    currency: payment.currency,
-    paidAt,
-    buyerName,
-    buyerEmail,
-    method: payment.method,
-    methodDetails,
-    shipAddress,
-    shipCity,
-    shipState,
-    shipPincode,
-    shipCountry,
-    pdfBuffer,
-  });
-
-  return NextResponse.json({ received: true, invoiceNumber });
+  return NextResponse.json({ received: true, invoiceNumber: result.invoiceNumber, alreadyProcessed: result.alreadyProcessed });
 }
