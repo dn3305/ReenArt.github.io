@@ -16,5 +16,192 @@ export interface Painting {
   year: string;
 }
 
-export const paintings: Painting[] = [];
+export const paintings: Painting[] = [
+  {
+    "id": "echoes-of-closeness",
+    "title": "Echoes of Closeness",
+    "series": "Attachment",
+    "size": "36\" x 48\"",
+    "medium": "Oil, gold leaf, and gesso on Belgian linen",
+    "price": 2400,
+    "formattedPrice": "$2,400",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/attachment1.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "silent-tether",
+    "title": "The Silent Tether",
+    "series": "Attachment",
+    "size": "30\" x 40\"",
+    "medium": "Mixed media, ochre pigment, and wax on canvas",
+    "price": 1850,
+    "formattedPrice": "$1,850",
+    "description": "Capturing the quiet weight of long-distance connections. Textured layers of wax and raw pigment create a map-like surface, punctuated by deep vertical fissures that represent physical separation but spiritual alignment.",
+    "details": "Finished with a protective matte varnish. Framed in a minimalist raw maple float frame. Signed and dated on the lower right corner.",
+    "images": [
+      "https://images.unsplash.com/photo-1579783928621-7a13d66a6211?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2025"
+  },
+  {
+    "id": "crimson-catharsis",
+    "title": "Crimson Catharsis",
+    "series": "Rage",
+    "size": "40\" x 40\"",
+    "medium": "Acrylic, charcoal, and marble dust on raw canvas",
+    "price": 2100,
+    "formattedPrice": "$2,100",
+    "description": "A raw, explosive expression of suppressed energy breaking free. Violent palette knife strokes of cadmium red contrast sharply against deep charcoal black, with a rich, gritty texture achieved by mixing marble dust directly into the pigments.",
+    "details": "Unframed, heavy-duty gallery wrap canvas (1.5\" profile). Sides are painted raw canvas black. Sealed with a satin UV-protective coating.",
+    "images": [
+      "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "inner-tempest",
+    "title": "The Inner Tempest",
+    "series": "Rage",
+    "size": "24\" x 36\"",
+    "medium": "Acrylic paint and ink splatters on wood panel",
+    "price": 1350,
+    "formattedPrice": "$1,350",
+    "description": "This piece channels emotional turbulence into a structured vortex. Dark gestural marks clash with splatters of liquid acrylic, creating an intense sense of motion and release that pulls the viewer into the canvas.",
+    "details": "Mounted on an elegant solid birch wood panel with a natural wood edge finish. Ready to hang.",
+    "images": [
+      "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1605721911519-3dfeb3be25e7?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "sold",
+    "year": "2025"
+  },
+  {
+    "id": "zen-flow",
+    "title": "Zen Flow No. 4",
+    "series": "Ink on paper",
+    "size": "18\" x 24\"",
+    "medium": "Japanese Sumi ink and distilled water on handmade mulberry paper",
+    "price": 850,
+    "formattedPrice": "$850",
+    "description": "A study of breath and motion. Created in a single, continuous gesture using a large sheep-hair brush, focusing on the beauty of imperfection (Wabi-Sabi) and the interplay of high-contrast ink gradients.",
+    "details": "Hand-deckled edges. Mounted on acid-free backing board and framed under museum-grade UV anti-reflective glass with a sleek black metal frame.",
+    "images": [
+      "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1549887534-1541e9326642?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "fractured-lines",
+    "title": "Fractured Lines",
+    "series": "Ink on paper",
+    "size": "20\" x 20\"",
+    "medium": "Fine-line archival ink and wash on cold-press paper",
+    "price": 950,
+    "formattedPrice": "$950",
+    "description": "Intricate, repetitive organic patterns resembling natural geological formations, wood grains, or flowing river currents. The piece is structured around geometric boundaries that contrast with the organic nature of the ink lines.",
+    "details": "Shipped in a custom minimalist black frame. Signed and dated by the artist in pencil on the front margins.",
+    "images": [
+      "https://images.unsplash.com/photo-1549887534-1541e9326642?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1578301978693-85fa9c0320b9?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "submerged-lights",
+    "title": "Submerged Lights",
+    "series": "Acrylic",
+    "size": "30\" x 30\"",
+    "medium": "Heavy-body acrylic and modeling paste on panel",
+    "price": 1600,
+    "formattedPrice": "$1,600",
+    "description": "Capturing the reflection of city lights under water. The highly textured surface is built from multiple layers of transparent acrylic glaze, allowing light to penetrate and bounce off underlying gesso structures.",
+    "details": "Cradled birch panel with sides painted matte black. Wired and ready to hang. Satin finish varnish.",
+    "images": [
+      "https://images.unsplash.com/photo-1547891654-e66ed7edd96c?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1541701494587-cb58502866ab?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2025"
+  },
+  {
+    "id": "neon-dreamscape",
+    "title": "Neon Dreamscape",
+    "series": "Digital art",
+    "size": "24\" x 36\" (Print)",
+    "medium": "Digital painting printed on Hahnemühle Photo Rag archival paper",
+    "price": 450,
+    "formattedPrice": "$450",
+    "description": "A cyberpunk-inspired landscape detailing holographic geometry suspended over a wet, neon-lit urban alleyway. A synthesis of digital brushstrokes, photography manipulation, and custom lighting filters.",
+    "details": "Limited edition print (1 of 10). Signed, numbered, and includes a certificate of authenticity. Shipped rolled in a heavy-duty tube or framed in black aluminum upon request (+ $150).",
+    "images": [
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "cosmic-reverie",
+    "title": "Cosmic Reverie",
+    "series": "Album art",
+    "size": "12\" x 12\" (Vinyl Size)",
+    "medium": "Digital mixed media illustration, original music release mockup",
+    "price": 350,
+    "formattedPrice": "$350",
+    "description": "Commissioned artwork designed for an ambient synthwave music vinyl cover. Blends surrealist elements like floating geometric crystals with retro 80s aesthetics and vaporwave gradient horizons.",
+    "details": "Available as an exclusive rights digital file or as a signed high-gloss print on heavy art cardstock. Framed in a custom vinyl frame.",
+    "images": [
+      "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2025"
+  },
+  {
+    "id": "abstract-monolith",
+    "title": "The Abstract Monolith",
+    "series": "Album art",
+    "size": "12\" x 12\"",
+    "medium": "Digital collage & graphic overlay, 300gsm matte print",
+    "price": 320,
+    "formattedPrice": "$320",
+    "description": "A dark, moody cover concept capturing a towering concrete structure in a desolate field. Explores themes of isolation, minimalist architecture, and raw industrial noise.",
+    "details": "Limited run print. Numbered and stamped by the artist on the reverse. Frame included.",
+    "images": [
+      "https://images.unsplash.com/photo-1550684848-fac1c5b4e853?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1518609878373-06d740f60d8b?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "sold",
+    "year": "2025"
+  },
+  {
+    "id": "hyperlight-portal",
+    "title": "Hyperlight Portal",
+    "series": "Digital art",
+    "size": "30\" x 40\" (Print)",
+    "medium": "3D generative render & digital paint on acrylic glass mount",
+    "price": 750,
+    "formattedPrice": "$750",
+    "description": "A mesmerizing 3D digital sculpture representing a gateway to another dimension. Layers of light refracted through digital glass create a deep sense of infinity, depth, and futuristic aesthetics.",
+    "details": "Face-mounted behind 1/4\" clear acrylic glass with a hidden aluminum hanging rail system. Floating modern look. Hand signed on the back.",
+    "images": [
+      "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=1200&q=80",
+      "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=1200&q=80"
+    ],
+    "status": "available",
+    "year": "2026"
+  }
+];
 
