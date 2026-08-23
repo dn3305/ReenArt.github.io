@@ -149,10 +149,15 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
+      const savedToken = localStorage.getItem('ra_gh_token') || '';
+      const headers: Record<string, string> = {};
+      if (savedToken) headers['x-github-token'] = savedToken;
+      
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, headers });
       const data = await res.json();
       if (data.success) {
         setUploadedFiles(prev => [...prev, data.filename]);
+        // If dataUri returned, pass it or filename
         onUploaded(data.filename);
       } else {
         alert(data.error || 'Upload failed');
