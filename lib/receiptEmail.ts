@@ -136,11 +136,10 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
         from: FROM_EMAIL,
         // TEMPORARY (see DOMAIN_VERIFIED above): Resend's shared address can
         // only deliver to the account owner, so every recipient field must
-        // be the artist's own email — reply_to isn't a delivery recipient,
-        // so it can still point at the buyer.
+        // be the artist's own email. No buyer address anywhere in this
+        // email, including reply_to, per explicit instruction.
         to: DOMAIN_VERIFIED ? [details.buyerEmail] : [ARTIST_EMAIL],
         bcc: DOMAIN_VERIFIED ? [ARTIST_EMAIL] : undefined,
-        reply_to: details.buyerEmail,
         subject: DOMAIN_VERIFIED
           ? `Invoice ${details.invoiceNumber} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`
           : `[Sale] ${details.buyerName} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`,

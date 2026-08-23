@@ -32,7 +32,7 @@ export const paintings: Painting[] = [
       "/images/IMG_9449.jpg",
       "/images/IMG_9466.jpg"
     ],
-    "status": "sold",
+    "status": "available",
     "year": "2026"
   }
 ];

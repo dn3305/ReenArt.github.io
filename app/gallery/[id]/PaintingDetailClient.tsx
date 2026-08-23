@@ -71,6 +71,9 @@ export default function PaintingDetailClient({ painting }: Props) {
   const [shipPincode, setShipPincode] = useState('');
   const [shipCountry, setShipCountry] = useState('');
   const [specialRequest, setSpecialRequest] = useState('');
+  const [submittingRequest, setSubmittingRequest] = useState(false);
+  const [requestError, setRequestError] = useState<string | null>(null);
+  const [requestSent, setRequestSent] = useState(false);
   const [invoiceDownloaded, setInvoiceDownloaded] = useState(false);
   const [razorpayReady, setRazorpayReady] = useState(false);
   const [payCurrency, setPayCurrency] = useState<'USD' | 'INR'>('USD');
@@ -89,6 +92,9 @@ export default function PaintingDetailClient({ painting }: Props) {
     setShipPincode('');
     setShipCountry('');
     setSpecialRequest('');
+    setSubmittingRequest(false);
+    setRequestError(null);
+    setRequestSent(false);
     setPayCurrency('USD');
     setInrPreview(null);
     setInvoiceError(null);
@@ -126,6 +132,29 @@ export default function PaintingDetailClient({ painting }: Props) {
       setInvoiceError('Failed to download invoice. Please try again.');
     } finally {
       setDownloadingInvoice(false);
+    }
+  };
+
+  const submitSpecialRequest = async (paymentId: string) => {
+    if (!specialRequest.trim()) return;
+    setSubmittingRequest(true);
+    setRequestError(null);
+    try {
+      const res = await fetch('/api/special-request', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentId, message: specialRequest.trim() }),
+      });
+      if (res.ok) {
+        setRequestSent(true);
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setRequestError(data.error || 'Failed to send your request. You can still close this window.');
+      }
+    } catch (err) {
+      setRequestError('Failed to send your request. You can still close this window.');
+    } finally {
+      setSubmittingRequest(false);
     }
   };
 
@@ -179,7 +208,6 @@ export default function PaintingDetailClient({ painting }: Props) {
           shipState,
           shipPincode,
           shipCountry,
-          specialRequest,
         }),
       });
       const orderData = await orderRes.json();
@@ -697,17 +725,6 @@ export default function PaintingDetailClient({ painting }: Props) {
                     </div>
                   </div>
 
-                  <div className="flex flex-col gap-1.5">
-                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Special Request (Optional)</label>
-                    <textarea
-                      rows={3}
-                      value={specialRequest}
-                      onChange={(e) => setSpecialRequest(e.target.value)}
-                      placeholder="Framing preferences, delivery instructions, gift note, etc."
-                      className="w-full border border-border-subtle bg-transparent p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
-                    />
-                  </div>
-
                   <button
                     onClick={handlePayNow}
                     disabled={isPaying}
@@ -744,6 +761,35 @@ export default function PaintingDetailClient({ painting }: Props) {
                     </p>
                   )}
                 </div>
+
+                {invoiceDownloaded && !requestSent && (
+                  <div className="w-full max-w-sm flex flex-col gap-2 text-left">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Special Request (Optional)</label>
+                    <textarea
+                      rows={3}
+                      value={specialRequest}
+                      onChange={(e) => setSpecialRequest(e.target.value)}
+                      placeholder="Framing preferences, delivery instructions, gift note, etc."
+                      className="w-full border border-border-subtle bg-transparent p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
+                    />
+                    {requestError && (
+                      <p className="text-[10px] font-light text-red-400 tracking-wide">{requestError}</p>
+                    )}
+                    {specialRequest.trim() && (
+                      <button
+                        onClick={() => submitSpecialRequest(paySuccess.paymentId)}
+                        disabled={submittingRequest}
+                        className="self-start border border-border-subtle px-4 py-2 text-[10px] uppercase tracking-widest hover:border-foreground transition-colors font-medium disabled:opacity-50"
+                      >
+                        {submittingRequest ? 'Sending…' : 'Send Request'}
+                      </button>
+                    )}
+                  </div>
+                )}
+                {requestSent && (
+                  <p className="text-[10px] font-light text-accent tracking-wide">✓ Your request has been sent to Nazia.</p>
+                )}
+
                 <div className="flex gap-3 mt-4">
                   <button
                     onClick={() => downloadInvoice(paySuccess.paymentId)}

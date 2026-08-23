@@ -24,7 +24,6 @@ export async function POST(req: Request) {
     const shipState = String(body.shipState || '').trim();
     const shipPincode = String(body.shipPincode || '').trim();
     const shipCountry = String(body.shipCountry || '').trim();
-    const specialRequest = String(body.specialRequest || '').trim().slice(0, 500);
 
     if (!payerName || !payerEmail) {
       return NextResponse.json({ error: 'Name and email are required.' }, { status: 400 });
@@ -82,7 +81,6 @@ export async function POST(req: Request) {
           shipState,
           shipPincode,
           shipCountry,
-          ...(specialRequest ? { specialRequest } : {}),
           ...(rateUsed ? { usdToInrRate: String(rateUsed) } : {}),
         },
       });
