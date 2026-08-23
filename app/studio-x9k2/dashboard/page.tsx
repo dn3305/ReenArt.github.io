@@ -392,6 +392,7 @@ export default function AdminDashboard() {
   const [validating, setValidating] = useState(false);
   const [pushing, setPushing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
+  const inFlightRef = useRef(false);
 
   const showToast = useCallback((msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
@@ -420,6 +421,8 @@ export default function AdminDashboard() {
   }
 
   async function handleSaveEdit(updated: Painting) {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setSaving(true);
     try {
       const token = localStorage.getItem('ra_gh_token') || '';
@@ -443,10 +446,13 @@ export default function AdminDashboard() {
       }
     } finally {
       setSaving(false);
+      inFlightRef.current = false;
     }
   }
 
   async function handleAddNew(p: Painting) {
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
     setSaving(true);
     try {
       const token = localStorage.getItem('ra_gh_token') || '';
@@ -470,25 +476,34 @@ export default function AdminDashboard() {
       }
     } finally {
       setSaving(false);
+      inFlightRef.current = false;
     }
   }
 
   async function handleDelete(id: string) {
-    const token = localStorage.getItem('ra_gh_token') || '';
-    const headers: Record<string, string> = {};
-    if (token) headers['x-github-token'] = token;
+    if (inFlightRef.current) return;
+    inFlightRef.current = true;
+    setSaving(true);
+    try {
+      const token = localStorage.getItem('ra_gh_token') || '';
+      const headers: Record<string, string> = {};
+      if (token) headers['x-github-token'] = token;
 
-    const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE', headers });
-    const data = await res.json();
-    if (data.success && data.pushedToGitHub) {
-      showToast('Painting deleted', 'success');
-      loadPaintings();
-    } else if (data.success) {
-      showToast('Not deleted: no GitHub token configured (see GitHub Settings tab)', 'error');
-    } else {
-      showToast(data.error || 'Failed to delete', 'error');
+      const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE', headers });
+      const data = await res.json();
+      if (data.success && data.pushedToGitHub) {
+        showToast('Painting deleted', 'success');
+        loadPaintings();
+      } else if (data.success) {
+        showToast('Not deleted: no GitHub token configured (see GitHub Settings tab)', 'error');
+      } else {
+        showToast(data.error || 'Failed to delete', 'error');
+      }
+      setConfirmDelete(null);
+    } finally {
+      setSaving(false);
+      inFlightRef.current = false;
     }
-    setConfirmDelete(null);
   }
 
   async function handleValidateToken() {
@@ -838,10 +853,11 @@ export default function AdminDashboard() {
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
               <button style={S.btnGhost} onClick={() => setConfirmDelete(null)}>Cancel</button>
               <button
-                style={{ ...S.btnDanger, padding: '0.65rem 1.4rem', fontSize: '0.88rem' }}
+                style={{ ...S.btnDanger, padding: '0.65rem 1.4rem', fontSize: '0.88rem', opacity: saving ? 0.5 : 1 }}
                 onClick={() => handleDelete(confirmDelete)}
+                disabled={saving}
               >
-                Yes, Delete
+                {saving ? 'Deleting…' : 'Yes, Delete'}
               </button>
             </div>
           </div>
