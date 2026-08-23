@@ -1,2 +1,0 @@
-invoiceNumber,paintingId,paintingTitle,orderId,paymentId,amount,currency,buyerName,buyerEmail,method,paidAt,shipAddress,shipCity,shipState,shipPincode,shipCountry
-INV-0001,echoes-of-closeness,Attachment 1,order_TESTFULL987,pay_TESTFULL987,25000,USD,Test Buyer,naureennaz00@gmail.com,upi,2026-08-23T21:52:37.000Z,"123 Test Street, Apt 4B",New Delhi,Delhi,110001,India
