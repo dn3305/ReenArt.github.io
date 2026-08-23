@@ -53,12 +53,28 @@ export async function POST(req: Request) {
 
     const results: string[] = [];
 
-    // 1. Push paintings.csv
-    const csvPath = path.join(process.cwd(), 'paintings.csv');
-    const csvContent = fs.readFileSync(csvPath, 'utf-8');
-    const csvBase64 = Buffer.from(csvContent, 'utf-8').toString('base64');
-    await pushFile(token, 'paintings.csv', csvBase64, '🎨 Update paintings database');
-    results.push('paintings.csv pushed');
+    // Every Add/Edit/Delete already auto-pushes paintings.csv to GitHub when a
+    // token is present, so this button is now just a manual re-sync. Reading
+    // paintings.csv from local disk here would read Vercel's read-only,
+    // build-time snapshot instead of the live file and silently overwrite any
+    // painting added since that deploy. Source the content from GitHub itself
+    // so this can never regress live data.
+    const csvGetRes = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/paintings.csv?ref=${BRANCH}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }, cache: 'no-store' }
+    );
+    if (csvGetRes.ok) {
+      // Already the source of truth on GitHub (every Add/Edit/Delete pushed it
+      // there directly) — nothing to do.
+      results.push('paintings.csv already up to date on GitHub');
+    } else {
+      // No file on GitHub yet — fall back to whatever's on disk (local dev only).
+      const csvPath = path.join(process.cwd(), 'paintings.csv');
+      const csvContent = fs.readFileSync(csvPath, 'utf-8');
+      const csvBase64 = Buffer.from(csvContent, 'utf-8').toString('base64');
+      await pushFile(token, 'paintings.csv', csvBase64, '🎨 Update paintings database');
+      results.push('paintings.csv pushed');
+    }
 
     // 2. Push images (optional, only new ones specified by caller)
     if (Array.isArray(pushImages) && pushImages.length > 0) {

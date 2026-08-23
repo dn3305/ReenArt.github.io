@@ -767,7 +767,7 @@ export default function AdminDashboard() {
                   Push to GitHub
                 </h3>
                 <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                  This will commit the latest <code>paintings.csv</code> to the GitHub repo. Run this whenever you want to sync changes.
+                  Every Save/Add/Delete already syncs to GitHub automatically once a token is set above &mdash; you shouldn&apos;t normally need this. It only matters if you&apos;re editing <code>paintings.csv</code> locally on this machine and want to push that copy up.
                 </p>
                 <button
                   style={{ ...S.btnGold, opacity: (!githubToken || pushing) ? 0.5 : 1 }}
