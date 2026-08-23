@@ -2,6 +2,15 @@ const ARTIST_EMAIL = 'naureennaz00@gmail.com';
 const FROM_EMAIL = 'ReenArt Studio <onboarding@resend.dev>';
 const SITE_URL = 'https://reenart.com';
 
+// TEMPORARY: Resend's shared onboarding@resend.dev address can only deliver
+// to the account owner's own email until a custom domain is verified
+// (resend.com/domains) — sending "to" any other address gets rejected with a
+// 403. Until reenart.com is verified, route every receipt to the artist
+// instead of the real buyer, so testing/verification still works end to end.
+// Once verified: swap FROM_EMAIL to an @reenart.com address and flip this
+// back to `to: [details.buyerEmail], bcc: [ARTIST_EMAIL]`.
+const DOMAIN_VERIFIED = false;
+
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -70,8 +79,14 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
   const methodFormatted = describeMethod(details.method, details.methodDetails);
   const downloadUrl = `${SITE_URL}/api/invoice/${encodeURIComponent(details.paymentId)}`;
 
+  const notDeliveredBanner = DOMAIN_VERIFIED ? '' : `
+      <div style="margin-bottom: 16px; padding: 10px 14px; background: #fff4e5; border: 1px solid #f0c987; font-size: 12px; color: #7a5b00;">
+        Domain not yet verified in Resend — this receipt was delivered only to you, not to the buyer (${escapeHtml(details.buyerEmail)}). Reply-to is set to their address. Forward this manually until reenart.com is verified.
+      </div>`;
+
   const html = `
     <div style="font-family: Georgia, serif; max-width: 480px; margin: 0 auto;">
+      ${notDeliveredBanner}
       <h2 style="font-weight: 300; letter-spacing: 0.05em;">Payment Receipt</h2>
       <p>Thank you for your purchase, ${escapeHtml(details.buyerName)}.</p>
       <table style="width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 16px;">
@@ -112,9 +127,16 @@ export async function sendReceiptEmail(details: ReceiptDetails): Promise<boolean
       },
       body: JSON.stringify({
         from: FROM_EMAIL,
-        to: [details.buyerEmail],
-        bcc: [ARTIST_EMAIL],
-        subject: `Invoice ${details.invoiceNumber} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`,
+        // TEMPORARY (see DOMAIN_VERIFIED above): Resend's shared address can
+        // only deliver to the account owner, so every recipient field must
+        // be the artist's own email — reply_to isn't a delivery recipient,
+        // so it can still point at the buyer.
+        to: DOMAIN_VERIFIED ? [details.buyerEmail] : [ARTIST_EMAIL],
+        bcc: DOMAIN_VERIFIED ? [ARTIST_EMAIL] : undefined,
+        reply_to: details.buyerEmail,
+        subject: DOMAIN_VERIFIED
+          ? `Invoice ${details.invoiceNumber} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`
+          : `[Sale] ${details.buyerName} — ${details.paintingTitle} — ${amountFormatted} ${details.currency}`,
         html,
         attachments: [
           {
