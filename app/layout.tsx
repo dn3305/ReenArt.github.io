@@ -44,9 +44,9 @@ export default function RootLayout({
               <Image
                 src={LOGO_BASE64}
                 alt="ReenArt – Fine Art by Nazia Naureen"
-                width={48}
-                height={48}
-                className="h-12 w-12 object-contain"
+                width={128}
+                height={128}
+                className="h-[4.25rem] w-[4.25rem] object-contain py-2"
                 priority
                 unoptimized
               />
@@ -90,7 +90,7 @@ export default function RootLayout({
                 alt="ReenArt – Fine Art by Nazia Naureen"
                 width={32}
                 height={32}
-                className="h-8 w-8 object-contain opacity-80"
+                className="h-14 w-14 object-contain opacity-80"
                 unoptimized
               />
               <p className="text-[10px] text-muted tracking-wider">Visual Artist & Painter</p>
