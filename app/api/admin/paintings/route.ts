@@ -46,44 +46,73 @@ async function pushCsvToGitHub(csvContent: string, token: string) {
 
 // --- CSV helpers ---
 
-async function fetchGitHubCsv(): Promise<string | null> {
+// Reads the live file straight from the GitHub Contents API (backed directly by
+// git data), not raw.githubusercontent.com, whose CDN can lag behind a commit by
+// up to a minute or more and serve stale content right after a write.
+async function fetchGitHubCsv(token?: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/paintings.csv?t=${Date.now()}`, {
-      cache: 'no-store'
-    });
-    if (res.ok) return await res.text();
+    const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/paintings.csv?ref=${BRANCH}`,
+      { headers, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Buffer.from(data.content, 'base64').toString('utf-8');
   } catch (e) {}
   return null;
 }
 
-async function readCsvLinesLive(): Promise<string[]> {
-  const liveCsv = await fetchGitHubCsv();
-  if (liveCsv !== null) return liveCsv.split('\n');
+// Parses full CSV content into rows, respecting quoted fields that contain
+// embedded commas or newlines (e.g. multi-line "additional info" text).
+// Splitting on '\n' before parsing quotes — as this file used to do — corrupts
+// any row whose quoted field contains a real line break.
+function parseCsvRows(content: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
+  let inQuotes = false;
+
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i];
+    const next = content[i + 1];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (next === '"') { cell += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      row.push(cell); cell = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      row = [];
+    } else {
+      cell += ch;
+    }
+  }
+  if (cell !== '' || row.length > 0) {
+    row.push(cell);
+    if (row.length > 1 || row[0] !== '') rows.push(row);
+  }
+  return rows;
+}
+
+async function readCsvRowsLive(token?: string): Promise<string[][]> {
+  const liveCsv = await fetchGitHubCsv(token);
+  if (liveCsv !== null) return parseCsvRows(liveCsv);
   try {
     const raw = fs.readFileSync(CSV_PATH, 'utf-8');
-    return raw.split('\n');
+    return parseCsvRows(raw);
   } catch (e) {
     return [];
   }
-}
-
-function parseCsvRow(line: string): string[] {
-  const cols: string[] = [];
-  let cur = '';
-  let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (ch === ',' && !inQuotes) {
-      cols.push(cur); cur = '';
-    } else {
-      cur += ch;
-    }
-  }
-  cols.push(cur);
-  return cols;
 }
 
 function escapeCsvField(val: string): string {
@@ -115,20 +144,9 @@ function paintingFromRow(cols: string[]) {
 
 // GET — return all paintings as JSON
 export async function GET() {
-  let rawCsv = await fetchGitHubCsv();
-  if (!rawCsv) {
-    try {
-      rawCsv = fs.readFileSync(CSV_PATH, 'utf-8');
-    } catch (e) {
-      rawCsv = '';
-    }
-  }
-  const lines = rawCsv.split('\n');
-  const header = lines[0];
-  const paintings = lines
-    .slice(1)
-    .filter((l) => l.trim())
-    .map((l) => paintingFromRow(parseCsvRow(l)));
+  const rows = await readCsvRowsLive();
+  const header = rows.length > 0 ? rowToLine(rows[0]) : '';
+  const paintings = rows.slice(1).map(paintingFromRow);
   return NextResponse.json({ header, paintings });
 }
 
@@ -137,14 +155,13 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const token = req.headers.get('x-github-token') || body.token || '';
-    const lines = await readCsvLinesLive();
-    const newRow = rowToLine([
+    const rows = await readCsvRowsLive(token);
+    rows.push([
       body.id, body.title, body.series, body.dimensions,
       body.medium, body.price, body.status, body.year,
       body.images, body.description, body.additionalInfo || '',
     ]);
-    lines.push(newRow);
-    const newCsvContent = lines.join('\n');
+    const newCsvContent = rows.map(rowToLine).join('\n');
 
     let savedOnDisk = false;
     try {

@@ -44,45 +44,74 @@ async function pushCsvToGitHub(csvContent: string, token: string) {
   }
 }
 
-async function fetchGitHubCsv(): Promise<string | null> {
+// Reads the live file straight from the GitHub Contents API (backed directly by
+// git data), not raw.githubusercontent.com, whose CDN can lag behind a commit by
+// up to a minute or more and serve stale content right after a write.
+async function fetchGitHubCsv(token?: string): Promise<string | null> {
   try {
-    const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/paintings.csv?t=${Date.now()}`, {
-      cache: 'no-store',
-    });
-    if (res.ok) return await res.text();
+    const headers: Record<string, string> = { Accept: 'application/vnd.github+json' };
+    if (token) headers.Authorization = `Bearer ${token}`;
+    const res = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/paintings.csv?ref=${BRANCH}`,
+      { headers, cache: 'no-store' }
+    );
+    if (!res.ok) return null;
+    const data = await res.json();
+    return Buffer.from(data.content, 'base64').toString('utf-8');
   } catch (e) {}
   return null;
 }
 
-async function readCsvLines(): Promise<string[]> {
-  const liveCsv = await fetchGitHubCsv();
-  if (liveCsv !== null) return liveCsv.split('\n');
-  try {
-    return fs.readFileSync(CSV_PATH, 'utf-8').split('\n');
-  } catch (e) {
-    return [
-      'id,title,series,dimensions,medium,price,status,year,images,description,additionalInfo',
-    ];
-  }
-}
-
-function parseCsvRow(line: string): string[] {
-  const cols: string[] = [];
-  let cur = '';
+// Parses full CSV content into rows, respecting quoted fields that contain
+// embedded commas or newlines (e.g. multi-line "additional info" text).
+// Splitting on '\n' before parsing quotes corrupts any row whose quoted field
+// contains a real line break.
+function parseCsvRows(content: string): string[][] {
+  const rows: string[][] = [];
+  let row: string[] = [];
+  let cell = '';
   let inQuotes = false;
-  for (let i = 0; i < line.length; i++) {
-    const ch = line[i];
-    if (ch === '"') {
-      if (inQuotes && line[i + 1] === '"') { cur += '"'; i++; }
-      else inQuotes = !inQuotes;
-    } else if (ch === ',' && !inQuotes) {
-      cols.push(cur); cur = '';
+
+  for (let i = 0; i < content.length; i++) {
+    const ch = content[i];
+    const next = content[i + 1];
+    if (inQuotes) {
+      if (ch === '"') {
+        if (next === '"') { cell += '"'; i++; }
+        else inQuotes = false;
+      } else {
+        cell += ch;
+      }
+    } else if (ch === '"') {
+      inQuotes = true;
+    } else if (ch === ',') {
+      row.push(cell); cell = '';
+    } else if (ch === '\n' || ch === '\r') {
+      if (ch === '\r' && next === '\n') i++;
+      row.push(cell); cell = '';
+      if (row.length > 1 || row[0] !== '') rows.push(row);
+      row = [];
     } else {
-      cur += ch;
+      cell += ch;
     }
   }
-  cols.push(cur);
-  return cols;
+  if (cell !== '' || row.length > 0) {
+    row.push(cell);
+    if (row.length > 1 || row[0] !== '') rows.push(row);
+  }
+  return rows;
+}
+
+async function readCsvRowsLive(token?: string): Promise<string[][]> {
+  const liveCsv = await fetchGitHubCsv(token);
+  if (liveCsv !== null) return parseCsvRows(liveCsv);
+  try {
+    return parseCsvRows(fs.readFileSync(CSV_PATH, 'utf-8'));
+  } catch (e) {
+    return [
+      ['id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo'],
+    ];
+  }
 }
 
 function escapeCsvField(val: string): string {
@@ -105,15 +134,14 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const token = req.headers.get('x-github-token') || body.token || '';
-    const lines = await readCsvLines();
+    const rows = await readCsvRowsLive(token);
     let updated = false;
 
-    const newLines = lines.map((line, idx) => {
-      if (idx === 0 || !line.trim()) return line;
-      const cols = parseCsvRow(line);
+    const newRows = rows.map((cols, idx) => {
+      if (idx === 0) return cols;
       if (cols[0] === id) {
         updated = true;
-        return rowToLine([
+        return [
           body.id ?? cols[0],
           body.title ?? cols[1],
           body.series ?? cols[2],
@@ -125,27 +153,28 @@ export async function PUT(
           body.images ?? cols[8],
           body.description ?? cols[9],
           body.additionalInfo ?? cols[10] ?? '',
-        ]);
+        ];
       }
-      return line;
+      return cols;
     });
 
     if (!updated) {
       return NextResponse.json({ error: 'Painting not found' }, { status: 404 });
     }
 
-    const newCsvContent = newLines.join('\n');
+    const newCsvContent = newRows.map(rowToLine).join('\n');
     try {
       fs.writeFileSync(CSV_PATH, newCsvContent, 'utf-8');
     } catch (diskErr) {
       console.log('Serverless environment (read-only filesystem)');
     }
 
+    let pushedToGitHub = false;
     if (token) {
-      await pushCsvToGitHub(newCsvContent, token);
+      pushedToGitHub = await pushCsvToGitHub(newCsvContent, token);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, pushedToGitHub });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
@@ -159,29 +188,26 @@ export async function DELETE(
   try {
     const { id } = await params;
     const token = req.headers.get('x-github-token') || '';
-    const lines = await readCsvLines();
-    const newLines = lines.filter((line, idx) => {
-      if (idx === 0 || !line.trim()) return true;
-      const cols = parseCsvRow(line);
-      return cols[0] !== id;
-    });
+    const rows = await readCsvRowsLive(token);
+    const newRows = rows.filter((cols, idx) => idx === 0 || cols[0] !== id);
 
-    if (newLines.length === lines.length) {
+    if (newRows.length === rows.length) {
       return NextResponse.json({ error: 'Painting not found' }, { status: 404 });
     }
 
-    const newCsvContent = newLines.join('\n');
+    const newCsvContent = newRows.map(rowToLine).join('\n');
     try {
       fs.writeFileSync(CSV_PATH, newCsvContent, 'utf-8');
     } catch (diskErr) {
       console.log('Serverless environment (read-only filesystem)');
     }
 
+    let pushedToGitHub = false;
     if (token) {
-      await pushCsvToGitHub(newCsvContent, token);
+      pushedToGitHub = await pushCsvToGitHub(newCsvContent, token);
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, pushedToGitHub });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

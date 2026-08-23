@@ -432,10 +432,12 @@ export default function AdminDashboard() {
         body: JSON.stringify(updated),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.pushedToGitHub) {
         showToast('Painting updated!', 'success');
         setEditPainting(null);
         loadPaintings();
+      } else if (data.success) {
+        showToast('Not saved: no GitHub token configured (see GitHub Settings tab)', 'error');
       } else {
         showToast(data.error || 'Failed to save', 'error');
       }
@@ -457,10 +459,12 @@ export default function AdminDashboard() {
         body: JSON.stringify(p),
       });
       const data = await res.json();
-      if (data.success) {
+      if (data.success && data.pushedToGitHub) {
         showToast('Painting added!', 'success');
         setTab('paintings');
         loadPaintings();
+      } else if (data.success) {
+        showToast('Not saved: no GitHub token configured (see GitHub Settings tab)', 'error');
       } else {
         showToast(data.error || 'Failed to add', 'error');
       }
@@ -476,9 +480,11 @@ export default function AdminDashboard() {
 
     const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE', headers });
     const data = await res.json();
-    if (data.success) {
+    if (data.success && data.pushedToGitHub) {
       showToast('Painting deleted', 'success');
       loadPaintings();
+    } else if (data.success) {
+      showToast('Not deleted: no GitHub token configured (see GitHub Settings tab)', 'error');
     } else {
       showToast(data.error || 'Failed to delete', 'error');
     }
