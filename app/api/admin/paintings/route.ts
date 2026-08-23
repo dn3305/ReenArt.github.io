@@ -56,7 +56,9 @@ async function fetchGitHubCsv(): Promise<string | null> {
   return null;
 }
 
-function readCsvLinesLocal(): string[] {
+async function readCsvLinesLive(): Promise<string[]> {
+  const liveCsv = await fetchGitHubCsv();
+  if (liveCsv !== null) return liveCsv.split('\n');
   try {
     const raw = fs.readFileSync(CSV_PATH, 'utf-8');
     return raw.split('\n');
@@ -135,7 +137,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const token = req.headers.get('x-github-token') || body.token || '';
-    const lines = readCsvLinesLocal();
+    const lines = await readCsvLinesLive();
     const newRow = rowToLine([
       body.id, body.title, body.series, body.dimensions,
       body.medium, body.price, body.status, body.year,

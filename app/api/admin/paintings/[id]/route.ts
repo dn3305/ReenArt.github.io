@@ -44,7 +44,19 @@ async function pushCsvToGitHub(csvContent: string, token: string) {
   }
 }
 
-function readCsvLines(): string[] {
+async function fetchGitHubCsv(): Promise<string | null> {
+  try {
+    const res = await fetch(`https://raw.githubusercontent.com/${REPO}/${BRANCH}/paintings.csv?t=${Date.now()}`, {
+      cache: 'no-store',
+    });
+    if (res.ok) return await res.text();
+  } catch (e) {}
+  return null;
+}
+
+async function readCsvLines(): Promise<string[]> {
+  const liveCsv = await fetchGitHubCsv();
+  if (liveCsv !== null) return liveCsv.split('\n');
   try {
     return fs.readFileSync(CSV_PATH, 'utf-8').split('\n');
   } catch (e) {
@@ -93,7 +105,7 @@ export async function PUT(
     const { id } = await params;
     const body = await req.json();
     const token = req.headers.get('x-github-token') || body.token || '';
-    const lines = readCsvLines();
+    const lines = await readCsvLines();
     let updated = false;
 
     const newLines = lines.map((line, idx) => {
@@ -147,7 +159,7 @@ export async function DELETE(
   try {
     const { id } = await params;
     const token = req.headers.get('x-github-token') || '';
-    const lines = readCsvLines();
+    const lines = await readCsvLines();
     const newLines = lines.filter((line, idx) => {
       if (idx === 0 || !line.trim()) return true;
       const cols = parseCsvRow(line);
