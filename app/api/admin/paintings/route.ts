@@ -135,7 +135,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const token = req.headers.get('x-github-token') || body.token || '';
-    const lines = readCsvLines();
+    const lines = readCsvLinesLocal();
     const newRow = rowToLine([
       body.id, body.title, body.series, body.dimensions,
       body.medium, body.price, body.status, body.year,
