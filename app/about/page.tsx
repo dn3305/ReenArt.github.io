@@ -6,6 +6,7 @@ import Image from 'next/image';
 export default function AboutPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -16,17 +17,22 @@ export default function AboutPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormError(null);
     try {
-      const form = e.target as HTMLFormElement;
-      const data = new FormData(form);
-      const res = await fetch('https://api.web3forms.com/submit', {
+      const res = await fetch('/api/contact', {
         method: 'POST',
-        body: data,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData),
       });
-      if (res.ok) {
+      const data = await res.json();
+      if (res.ok && data.success) {
         setFormSubmitted(true);
         setFormData({ name: '', email: '', subject: 'General Inquiry', message: '' });
+      } else {
+        setFormError(data.error || 'Failed to send your message. Please try again.');
       }
+    } catch (err) {
+      setFormError('Failed to send your message. Please check your connection and try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -161,10 +167,11 @@ export default function AboutPage() {
 
             {!formSubmitted ? (
               <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-                {/* web3forms hidden fields */}
-                <input type="hidden" name="access_key" value="aeead0aa-134f-44e7-8b50-a568ab468937" />
-                <input type="hidden" name="subject" value={formData.subject} />
-                <input type="checkbox" name="botcheck" className="hidden" style={{ display: 'none' }} />
+                {formError && (
+                  <div className="border border-red-400/40 bg-red-500/10 text-red-400 text-xs tracking-wide px-4 py-3">
+                    {formError}
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                   <div className="flex flex-col gap-1.5">
