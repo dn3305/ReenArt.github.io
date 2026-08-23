@@ -122,18 +122,14 @@ export default function AboutPage() {
             {/* Contact Info */}
             <div className="flex flex-col gap-3 pt-2">
               <h2 className="font-serif text-2xl text-foreground font-light tracking-wide">Contact</h2>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-muted tracking-wide">
-                <div>
-                  <div className="text-[10px] uppercase tracking-widest text-accent mb-1">Phone</div>
-                  <a href="tel:+918860020689" className="hover:text-foreground transition-colors">+91 88600 20689</a>
-                </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs text-muted tracking-wide">
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-accent mb-1">Email</div>
                   <a href="mailto:naureennaz00@gmail.com" className="hover:text-foreground transition-colors">naureennaz00@gmail.com</a>
                 </div>
                 <div>
                   <div className="text-[10px] uppercase tracking-widest text-accent mb-1">Website</div>
-                  <a href="https://reenart.shop" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">reenart.shop</a>
+                  <a href="https://reenart.com" target="_blank" rel="noreferrer" className="hover:text-foreground transition-colors">reenart.com</a>
                 </div>
               </div>
             </div>
