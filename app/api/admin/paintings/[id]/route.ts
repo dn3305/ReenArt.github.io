@@ -3,9 +3,55 @@ import fs from 'fs';
 import path from 'path';
 
 const CSV_PATH = path.join(process.cwd(), 'paintings.csv');
+const REPO = 'dn3305/ReenArt.github.io';
+const BRANCH = 'main';
+
+async function pushCsvToGitHub(csvContent: string, token: string) {
+  if (!token) return false;
+  try {
+    const base64Content = Buffer.from(csvContent, 'utf-8').toString('base64');
+    let sha: string | null = null;
+    const getRes = await fetch(
+      `https://api.github.com/repos/${REPO}/contents/paintings.csv?ref=${BRANCH}`,
+      { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' } }
+    );
+    if (getRes.ok) {
+      const data = await getRes.json();
+      sha = data.sha ?? null;
+    }
+
+    const body: Record<string, unknown> = {
+      message: '🎨 Update paintings.csv via Admin Dashboard',
+      content: base64Content,
+      branch: BRANCH,
+    };
+    if (sha) body.sha = sha;
+
+    const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/paintings.csv`, {
+      method: 'PUT',
+      headers: {
+        Authorization: `Bearer ${token}`,
+        Accept: 'application/vnd.github+json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(body),
+    });
+
+    return putRes.ok;
+  } catch (err) {
+    console.error('GitHub CSV push error:', err);
+    return false;
+  }
+}
 
 function readCsvLines(): string[] {
-  return fs.readFileSync(CSV_PATH, 'utf-8').split('\n');
+  try {
+    return fs.readFileSync(CSV_PATH, 'utf-8').split('\n');
+  } catch (e) {
+    return [
+      'id,title,series,dimensions,medium,price,status,year,images,description,additionalInfo',
+    ];
+  }
 }
 
 function parseCsvRow(line: string): string[] {
@@ -46,11 +92,12 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
+    const token = req.headers.get('x-github-token') || body.token || '';
     const lines = readCsvLines();
     let updated = false;
 
     const newLines = lines.map((line, idx) => {
-      if (idx === 0 || !line.trim()) return line; // skip header & empty
+      if (idx === 0 || !line.trim()) return line;
       const cols = parseCsvRow(line);
       if (cols[0] === id) {
         updated = true;
@@ -75,7 +122,17 @@ export async function PUT(
       return NextResponse.json({ error: 'Painting not found' }, { status: 404 });
     }
 
-    fs.writeFileSync(CSV_PATH, newLines.join('\n'), 'utf-8');
+    const newCsvContent = newLines.join('\n');
+    try {
+      fs.writeFileSync(CSV_PATH, newCsvContent, 'utf-8');
+    } catch (diskErr) {
+      console.log('Serverless environment (read-only filesystem)');
+    }
+
+    if (token) {
+      await pushCsvToGitHub(newCsvContent, token);
+    }
+
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
@@ -84,11 +141,12 @@ export async function PUT(
 
 // DELETE — remove a painting row by id
 export async function DELETE(
-  _req: Request,
+  req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { id } = await params;
+    const token = req.headers.get('x-github-token') || '';
     const lines = readCsvLines();
     const newLines = lines.filter((line, idx) => {
       if (idx === 0 || !line.trim()) return true;
@@ -100,7 +158,17 @@ export async function DELETE(
       return NextResponse.json({ error: 'Painting not found' }, { status: 404 });
     }
 
-    fs.writeFileSync(CSV_PATH, newLines.join('\n'), 'utf-8');
+    const newCsvContent = newLines.join('\n');
+    try {
+      fs.writeFileSync(CSV_PATH, newCsvContent, 'utf-8');
+    } catch (diskErr) {
+      console.log('Serverless environment (read-only filesystem)');
+    }
+
+    if (token) {
+      await pushCsvToGitHub(newCsvContent, token);
+    }
+
     return NextResponse.json({ success: true });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });

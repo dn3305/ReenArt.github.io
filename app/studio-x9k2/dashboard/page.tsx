@@ -422,9 +422,13 @@ export default function AdminDashboard() {
   async function handleSaveEdit(updated: Painting) {
     setSaving(true);
     try {
+      const token = localStorage.getItem('ra_gh_token') || '';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['x-github-token'] = token;
+
       const res = await fetch(`/api/admin/paintings/${editPainting!.id}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(updated),
       });
       const data = await res.json();
@@ -443,9 +447,13 @@ export default function AdminDashboard() {
   async function handleAddNew(p: Painting) {
     setSaving(true);
     try {
+      const token = localStorage.getItem('ra_gh_token') || '';
+      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+      if (token) headers['x-github-token'] = token;
+
       const res = await fetch('/api/admin/paintings', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers,
         body: JSON.stringify(p),
       });
       const data = await res.json();
@@ -462,7 +470,11 @@ export default function AdminDashboard() {
   }
 
   async function handleDelete(id: string) {
-    const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE' });
+    const token = localStorage.getItem('ra_gh_token') || '';
+    const headers: Record<string, string> = {};
+    if (token) headers['x-github-token'] = token;
+
+    const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE', headers });
     const data = await res.json();
     if (data.success) {
       showToast('Painting deleted', 'success');
