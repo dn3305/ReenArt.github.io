@@ -1,2 +1,0 @@
-invoiceNumber,paintingId,paintingTitle,orderId,paymentId,amount,currency,buyerName,buyerEmail,method,paidAt,shipAddress,shipCity,shipState,shipPincode,shipCountry
-INV-0001,echoes-of-closeness,Attachment 1,order_TTO5pfF3eUAC17,pay_TTO6BwcPPXvEZT,25000,USD,Dr Shazia Naureen,sibbi.naureen@gmail.com,card,2026-08-23T23:10:44.000Z,"12A03/T-6,CIVITECH FLORENCIA,RAMPRASTHA GREENS",GHAZIABAD,UTTAR PRADESH,201010,India
