@@ -1,0 +1,2 @@
+invoiceNumber,paintingId,paintingTitle,orderId,paymentId,amount,currency,buyerName,buyerEmail,method,paidAt,shipAddress,shipCity,shipState,shipPincode,shipCountry
+INV-0001,echoes-of-closeness,Attachment 1,order_TUAiJVd4kCrTu9,pay_TUAicXFSSE2qVG,25000,USD,Internal Test,naureennaz00@gmail.com,card,2026-08-25T22:44:24.000Z,123 Test St,Delhi,Delhi,110001,India
