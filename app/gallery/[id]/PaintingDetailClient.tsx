@@ -252,8 +252,11 @@ export default function PaintingDetailClient({ painting }: Props) {
         },
       });
 
-      razorpay.on('payment.failed', (response) => {
-        setPayError(response.error?.description || 'Payment failed. Please try again.');
+      razorpay.on('payment.failed', () => {
+        // Razorpay's own error.description can be a raw bank/network decline
+        // reason — keep the message simple and actionable instead of
+        // surfacing that verbatim.
+        setPayError('Transaction failed. Please try again.');
         setIsPaying(false);
       });
 
