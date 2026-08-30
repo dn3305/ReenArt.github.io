@@ -232,7 +232,7 @@ export default function AboutPage() {
                 </button>
               </form>
             ) : (
-              <div className="flex flex-col items-center justify-center py-10 text-center gap-6 border border-border-subtle bg-neutral-50 dark:bg-neutral-900/50 p-8">
+              <div className="flex flex-col items-center justify-center py-10 text-center gap-6 border border-white/10 bg-white/5 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-8">
                 <div className="w-12 h-12 rounded-full border border-accent bg-accent/5 flex items-center justify-center text-accent text-xl font-light">
                   ✓
                 </div>

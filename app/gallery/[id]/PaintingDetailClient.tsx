@@ -420,7 +420,7 @@ export default function PaintingDetailClient({ painting }: Props) {
           </div>
 
           {/* Shipping Info */}
-          <div className="flex flex-col gap-2 bg-neutral-50 dark:bg-neutral-900/50 border border-border-subtle p-5">
+          <div className="flex flex-col gap-2 bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-5">
             <h4 className="text-[10px] uppercase tracking-widest text-accent font-medium">Acquiring this Artwork</h4>
             <p className="text-[11px] font-light text-muted leading-relaxed tracking-wide">
               {painting.details} Free worldwide shipping in custom wood crates or reinforced archival packaging. Ships within 5-7 business days with active tracking and insurance cover.
@@ -464,7 +464,7 @@ export default function PaintingDetailClient({ painting }: Props) {
           />
           
           {/* Modal content */}
-          <div className="relative w-full max-w-lg bg-background border border-border-subtle p-8 md:p-10 shadow-2xl z-10 animate-fade-in max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-background/80 backdrop-blur-2xl border border-white/10 p-8 md:p-10 shadow-2xl shadow-black/50 z-10 animate-fade-in max-h-[90vh] overflow-y-auto before:absolute before:inset-0 before:pointer-events-none before:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             {/* Close Button */}
             <button
               onClick={closeInquiry}
@@ -582,7 +582,7 @@ export default function PaintingDetailClient({ painting }: Props) {
           />
 
           {/* Modal content */}
-          <div className="relative w-full max-w-lg bg-background border border-border-subtle p-8 md:p-10 shadow-2xl z-10 animate-fade-in max-h-[90vh] overflow-y-auto">
+          <div className="relative w-full max-w-lg bg-background/80 backdrop-blur-2xl border border-white/10 p-8 md:p-10 shadow-2xl shadow-black/50 z-10 animate-fade-in max-h-[90vh] overflow-y-auto before:absolute before:inset-0 before:pointer-events-none before:shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             {/* Close Button */}
             <button
               onClick={() => { if (!paySuccess || invoiceDownloaded) closePay(); }}

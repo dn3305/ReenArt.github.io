@@ -34,7 +34,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col bg-background text-foreground selection:bg-accent/20 selection:text-accent">
         {/* Navigation Header */}
-        <header className="sticky top-0 z-40 w-full border-b border-border-subtle bg-background/80 backdrop-blur-md">
+        <header className="sticky top-0 z-40 w-full border-b border-white/10 bg-background/70 backdrop-blur-xl shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]">
           <div className="mx-auto flex max-w-7xl h-20 items-center justify-between px-6 md:px-12">
             {/* Logo */}
             <Link 

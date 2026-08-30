@@ -48,7 +48,7 @@ export default function Home() {
 
         {/* Hero Content */}
         <div className="relative z-10 mx-auto max-w-4xl text-center px-6 md:px-12 flex flex-col items-center gap-6 animate-fade-in">
-          <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium">Fine Art Portfolio</span>
+          <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium px-4 py-1.5 rounded-full bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Fine Art Portfolio</span>
           <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-extralight tracking-tight leading-none text-foreground [text-wrap:balance]">
             Capturing the Ephemeral
           </h1>
@@ -64,7 +64,7 @@ export default function Home() {
             </Link>
             <Link
               href="/about"
-              className="flex h-12 items-center justify-center border border-border-subtle bg-transparent text-foreground text-xs uppercase tracking-widest px-8 hover:border-foreground transition-colors duration-300"
+              className="flex h-12 items-center justify-center border border-white/15 bg-white/[0.06] backdrop-blur-md text-foreground text-xs uppercase tracking-widest px-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-white/[0.1] hover:border-white/25 transition-colors duration-300"
             >
               Artist Statement
             </Link>
