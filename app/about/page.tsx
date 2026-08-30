@@ -60,8 +60,8 @@ export default function AboutPage() {
         <div className="lg:col-span-5 flex flex-col gap-6">
           <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-border-subtle">
             <Image
-              src="https://images.unsplash.com/photo-1579783902614-a3fb3927b6a5?auto=format&fit=crop&w=1000&q=80"
-              alt="Nazia in her studio"
+              src="/images/profile.jpg"
+              alt="Nazia Naureen"
               fill
               priority
               sizes="(max-width: 1024px) 100vw, 40vw"
