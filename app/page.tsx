@@ -29,17 +29,21 @@ export default function Home() {
     <div className="flex flex-col w-full min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden">
-        {/* Background: no photography here — kept purely typographic/textural
-            so the actual paintings (in the gallery) stay the visual focus.
-            A soft radial glow plus a faint grain keeps it from feeling flat. */}
-        <div className="absolute inset-0 z-0 bg-background">
-          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(201,168,76,0.08),transparent_65%)]" />
-          <div
-            className="absolute inset-0 opacity-[0.03]"
-            style={{
-              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
-            }}
+        {/* Background image, faded generously into the black nav above and
+            the next section below so there's no hard seam — the previous
+            version had a sharp edge where the photo met the header border. */}
+        <div className="absolute inset-0 z-0">
+          <Image
+            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1920&q=80"
+            alt=""
+            fill
+            priority
+            className="object-cover brightness-[0.95] dark:brightness-[0.35]"
           />
+          {/* Top and bottom fade into the surrounding black, plus a soft
+              center darkening so the headline stays readable. */}
+          <div className="absolute inset-0 bg-gradient-to-b from-background via-transparent to-background" />
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_65%_55%_at_50%_50%,rgba(0,0,0,0.5),transparent_70%)]" />
         </div>
 
         {/* Hero Content */}
