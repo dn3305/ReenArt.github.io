@@ -59,17 +59,17 @@ function GalleryContent() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-16 border-b border-border-subtle pb-6 overflow-x-auto scrollbar-none">
+      <div className="flex flex-wrap items-center justify-center gap-2 md:gap-4 mb-16 border-b border-white/10 pb-6 overflow-x-auto scrollbar-none">
         {filtersList.map((filter) => {
           const isActive = activeFilter === filter;
           return (
             <button
               key={filter}
               onClick={() => handleFilterChange(filter)}
-              className={`text-xs uppercase tracking-widest px-4 py-2 border transition-all duration-300 ${
+              className={`text-xs uppercase tracking-widest px-4 py-2 border rounded-full transition-colors duration-300 ${
                 isActive
                   ? 'bg-foreground text-background border-foreground font-medium'
-                  : 'bg-transparent text-muted border-transparent hover:text-foreground hover:border-border-subtle'
+                  : 'bg-white/5 backdrop-blur-md text-muted border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] hover:text-foreground hover:border-white/20 hover:bg-white/10'
               }`}
             >
               {filter}
@@ -94,7 +94,7 @@ function GalleryContent() {
               className="group flex flex-col gap-4"
             >
               {/* Image Box */}
-              <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-border-subtle">
+              <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-white/20 transition-colors duration-300">
                 <Image
                   src={painting.images[0]}
                   alt={painting.title}
@@ -102,19 +102,24 @@ function GalleryContent() {
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
-                
+
                 {/* Badges */}
                 <div className="absolute top-4 left-4 flex gap-2">
-                  <span className="bg-background/90 text-foreground text-[8px] uppercase tracking-widest px-2.5 py-1 font-light border border-border-subtle">
+                  <span className="bg-background/60 backdrop-blur-md text-foreground text-[8px] uppercase tracking-widest px-2.5 py-1 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                     {painting.series}
                   </span>
                 </div>
-                
+
                 {painting.status === 'sold' && (
-                  <span className="absolute top-4 right-4 bg-background/95 text-foreground text-[8px] uppercase tracking-widest px-3 py-1 font-light border border-border-subtle">
+                  <span className="absolute top-4 right-4 bg-background/70 backdrop-blur-md text-foreground text-[8px] uppercase tracking-widest px-3 py-1 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                     Sold
                   </span>
                 )}
+
+                {/* Glass info strip revealed on hover */}
+                <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 bg-background/50 backdrop-blur-md border-t border-white/15 px-4 py-3 transition-transform duration-500 ease-out">
+                  <span className="text-[9px] uppercase tracking-widest text-foreground/90">View Piece →</span>
+                </div>
               </div>
 
               {/* Painting Metadata */}

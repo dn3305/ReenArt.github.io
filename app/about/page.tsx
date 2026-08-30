@@ -58,7 +58,7 @@ export default function AboutPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20 items-start">
         {/* Left Column: Portrait */}
         <div className="lg:col-span-5 flex flex-col gap-6">
-          <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-border-subtle">
+          <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <Image
               src="/images/profile.jpg"
               alt="Nazia Naureen"
@@ -179,7 +179,7 @@ export default function AboutPage() {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. Arjun Sharma"
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -191,7 +191,7 @@ export default function AboutPage() {
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                       placeholder="e.g. arjun@example.com"
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
                 </div>
@@ -201,7 +201,7 @@ export default function AboutPage() {
                   <select
                     value={formData.subject}
                     onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    className="w-full h-10 border border-border-subtle bg-background px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                    className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                   >
                     <option value="General Inquiry">General Inquiry</option>
                     <option value="Artwork Acquisition">Artwork Acquisition</option>
@@ -219,7 +219,7 @@ export default function AboutPage() {
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
                     placeholder="Describe your inquiry..."
-                    className="w-full border border-border-subtle bg-transparent p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
+                    className="w-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
                   />
                 </div>
 

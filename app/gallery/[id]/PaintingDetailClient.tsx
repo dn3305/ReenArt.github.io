@@ -329,7 +329,7 @@ export default function PaintingDetailClient({ painting }: Props) {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16 items-start">
         {/* Left Side: Images View */}
         <div className="lg:col-span-7 flex flex-col gap-4">
-          <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-border-subtle">
+          <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <Image
               src={painting.images[activeImageIndex]}
               alt={`${painting.title} - View ${activeImageIndex + 1}`}
@@ -339,7 +339,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               className="object-cover transition-all duration-500"
             />
             {painting.status === 'sold' && (
-              <span className="absolute top-6 right-6 bg-background/95 text-foreground text-xs uppercase tracking-widest px-4 py-2 font-light border border-border-subtle">
+              <span className="absolute top-6 right-6 bg-background/60 backdrop-blur-md text-foreground text-xs uppercase tracking-widest px-4 py-2 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                 Sold
               </span>
             )}
@@ -353,7 +353,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
                   className={`relative w-20 h-20 overflow-hidden bg-neutral-100 border transition-all shrink-0 ${
-                    activeImageIndex === idx ? 'border-accent ring-1 ring-accent/30' : 'border-border-subtle hover:border-accent/50'
+                    activeImageIndex === idx ? 'border-accent ring-1 ring-accent/30' : 'border-white/10 hover:border-accent/50'
                   }`}
                 >
                   <Image
@@ -378,10 +378,10 @@ export default function PaintingDetailClient({ painting }: Props) {
             </h1>
             <div className="flex items-center gap-4 mt-2">
               <span className="text-xl font-light text-accent tracking-wide tabular-nums">{painting.formattedPrice}</span>
-              <span className={`text-[10px] uppercase tracking-widest px-2.5 py-0.5 border font-light ${
+              <span className={`text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border font-light backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${
                 painting.status === 'available'
-                  ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400'
-                  : 'border-neutral-500/20 bg-neutral-500/5 text-neutral-500'
+                  ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
+                  : 'border-white/15 bg-white/5 text-neutral-400'
               }`}>
                 {painting.status}
               </span>
@@ -389,7 +389,7 @@ export default function PaintingDetailClient({ painting }: Props) {
           </div>
 
           {/* Specifications Card */}
-          <div className="border-t border-b border-border-subtle py-6">
+          <div className="border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] rounded-lg px-6 py-6">
             <h3 className="text-xs uppercase tracking-widest text-foreground font-medium mb-4">Artwork Details</h3>
             <dl className="grid grid-cols-2 gap-y-4 gap-x-2 text-xs font-light text-muted tracking-wide">
               <div>
@@ -438,7 +438,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               </button>
               <button
                 onClick={() => setIsInquiryOpen(true)}
-                className="w-full h-12 border border-border-subtle bg-transparent text-foreground text-xs uppercase tracking-widest hover:border-foreground transition-all duration-300 font-medium"
+                className="w-full h-12 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-foreground text-xs uppercase tracking-widest hover:border-foreground transition-all duration-300 font-medium"
               >
                 Inquire to Acquire
               </button>
@@ -446,7 +446,7 @@ export default function PaintingDetailClient({ painting }: Props) {
           ) : (
             <button
               onClick={() => setIsInquiryOpen(true)}
-              className="w-full h-12 border border-border-subtle bg-transparent text-muted text-xs uppercase tracking-widest hover:border-foreground hover:text-foreground transition-all duration-300"
+              className="w-full h-12 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] text-muted text-xs uppercase tracking-widest hover:border-foreground hover:text-foreground transition-all duration-300"
             >
               Request Custom Commission
             </button>
@@ -500,7 +500,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="e.g. John Doe"
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -513,7 +513,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                         placeholder="e.g. john@example.com"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -523,7 +523,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                         placeholder="e.g. +1 555-0199"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
@@ -535,7 +535,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       rows={5}
                       value={formData.message}
                       onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                      className="w-full border border-border-subtle bg-transparent p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
+                      className="w-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
                     />
                   </div>
 
@@ -651,7 +651,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       value={payerName}
                       onChange={(e) => setPayerName(e.target.value)}
                       placeholder="e.g. John Doe"
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
                   <div className="flex flex-col gap-1.5">
@@ -662,7 +662,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       value={payerEmail}
                       onChange={(e) => setPayerEmail(e.target.value)}
                       placeholder="e.g. john@example.com"
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -674,7 +674,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       value={shipAddress}
                       onChange={(e) => setShipAddress(e.target.value)}
                       placeholder="Street address, apartment, etc."
-                      className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                      className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                     />
                   </div>
 
@@ -687,7 +687,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={shipCity}
                         onChange={(e) => setShipCity(e.target.value)}
                         placeholder="e.g. Delhi"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -698,7 +698,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={shipState}
                         onChange={(e) => setShipState(e.target.value)}
                         placeholder="e.g. Delhi"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
@@ -712,7 +712,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={shipPincode}
                         onChange={(e) => setShipPincode(e.target.value)}
                         placeholder="e.g. 110001"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                     <div className="flex flex-col gap-1.5">
@@ -723,7 +723,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                         value={shipCountry}
                         onChange={(e) => setShipCountry(e.target.value)}
                         placeholder="e.g. India"
-                        className="w-full h-10 border border-border-subtle bg-transparent px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
+                        className="w-full h-10 border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] px-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
@@ -773,7 +773,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                       value={specialRequest}
                       onChange={(e) => setSpecialRequest(e.target.value)}
                       placeholder="Framing preferences, delivery instructions, gift note, etc."
-                      className="w-full border border-border-subtle bg-transparent p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
+                      className="w-full border border-white/10 bg-white/5 backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-3 text-xs tracking-wide focus:border-accent focus:outline-none transition-colors resize-none leading-relaxed"
                     />
                     {requestError && (
                       <p className="text-[10px] font-light text-red-400 tracking-wide">{requestError}</p>

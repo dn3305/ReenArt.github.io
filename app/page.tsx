@@ -48,7 +48,7 @@ export default function Home() {
 
         {/* Hero Content */}
         <div className="relative z-10 mx-auto max-w-4xl text-center px-6 md:px-12 flex flex-col items-center gap-6 animate-fade-in">
-          <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium px-4 py-1.5 rounded-full bg-white/[0.04] backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Fine Art Portfolio</span>
+          <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Fine Art Portfolio</span>
           <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-extralight tracking-tight leading-none text-foreground [text-wrap:balance]">
             Capturing the Ephemeral
           </h1>
@@ -64,7 +64,7 @@ export default function Home() {
             </Link>
             <Link
               href="/about"
-              className="flex h-12 items-center justify-center border border-white/15 bg-white/[0.06] backdrop-blur-md text-foreground text-xs uppercase tracking-widest px-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-white/[0.1] hover:border-white/25 transition-colors duration-300"
+              className="flex h-12 items-center justify-center border border-white/15 bg-white/5 backdrop-blur-md text-foreground text-xs uppercase tracking-widest px-8 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)] hover:bg-white/10 hover:border-white/25 transition-colors duration-300"
             >
               Artist Statement
             </Link>
@@ -115,7 +115,7 @@ export default function Home() {
                 href={`/gallery/${painting.id}`}
                 className="group flex flex-col gap-4"
               >
-                <div className="relative aspect-[3/4] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-border-subtle">
+                <div className="relative aspect-[3/4] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-white/20 transition-colors duration-300">
                   <Image
                     src={painting.images[0]}
                     alt={painting.title}
@@ -124,7 +124,7 @@ export default function Home() {
                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
                   {painting.status === 'sold' && (
-                    <span className="absolute top-4 right-4 bg-background/90 text-foreground text-[9px] uppercase tracking-widest px-3 py-1 font-light border border-border-subtle">
+                    <span className="absolute top-4 right-4 bg-background/60 backdrop-blur-md text-foreground text-[9px] uppercase tracking-widest px-3 py-1 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
                       Sold
                     </span>
                   )}
@@ -158,7 +158,7 @@ export default function Home() {
               <Link
                 key={series.name}
                 href={`/gallery?series=${encodeURIComponent(series.tag)}`}
-                className="relative aspect-square overflow-hidden group border border-border-subtle"
+                className="relative aspect-square overflow-hidden group border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-white/20 transition-colors duration-300"
               >
                 <Image
                   src={series.image}
@@ -169,7 +169,7 @@ export default function Home() {
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300" />
                 <div className="absolute inset-0 flex items-center justify-center p-4">
-                  <h3 className="font-serif text-sm sm:text-base text-white text-center font-light tracking-widest uppercase group-hover:scale-105 transition-transform">
+                  <h3 className="font-serif text-sm sm:text-base text-white text-center font-light tracking-widest uppercase group-hover:scale-105 transition-transform px-3 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.15)]">
                     {series.name}
                   </h3>
                 </div>

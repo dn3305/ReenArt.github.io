@@ -82,7 +82,7 @@ export default function RootLayout({
         </main>
 
         {/* Footer */}
-        <footer className="border-t border-border-subtle bg-background py-12">
+        <footer className="relative border-t border-white/10 bg-white/5 backdrop-blur-xl py-12 shadow-[inset_0_1px_0_rgba(255,255,255,0.05)]">
           <div className="mx-auto max-w-7xl px-6 md:px-12 flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex flex-col gap-2 text-center md:text-left items-center md:items-start">
               <Image
@@ -95,14 +95,14 @@ export default function RootLayout({
               />
               <p className="text-[10px] text-muted tracking-wider">Visual Artist & Painter</p>
             </div>
-            
+
             <p className="text-[10px] text-muted tracking-widest uppercase">
               © {new Date().getFullYear()} Nazia. All Rights Reserved.
             </p>
-            
+
             <div className="flex gap-6 text-[10px] uppercase tracking-widest text-muted">
-              <a href="#instagram" className="hover:text-accent transition-colors">Instagram</a>
-              <a href="#about" className="hover:text-accent transition-colors">Inquiries</a>
+              <a href="https://www.instagram.com/reenart_/" target="_blank" rel="noreferrer" className="hover:text-accent transition-colors">Instagram</a>
+              <Link href="/about" className="hover:text-accent transition-colors">Inquiries</Link>
             </div>
           </div>
         </footer>
