@@ -3,65 +3,64 @@ import Link from "next/link";
 import { paintings } from "./data/paintings";
 
 export default function Home() {
-  // Select 3 featured paintings
-  const featuredPaintings = paintings.filter(p =>
-    p.id === "echoes-of-closeness" ||
-    p.id === "crimson-catharsis" ||
-    p.id === "zen-flow"
-  );
+  // Feature the 3 most recent paintings that have at least one image, so this
+  // section stays correct as the catalog changes instead of pointing at
+  // hardcoded ids that can go stale.
+  const featuredPaintings = [...paintings]
+    .filter(p => p.images && p.images.length > 0)
+    .sort((a, b) => Number(b.year) - Number(a.year))
+    .slice(0, 3);
 
-  // Dynamically extract all unique series names from paintings
+  // Dynamically extract all unique series names from paintings that actually
+  // have cover art — a series with no image would otherwise fall back to a
+  // stock photo, which reads as generic filler.
   const uniqueSeriesNames = Array.from(new Set(paintings.map(p => p.series).filter(Boolean)));
 
-  const seriesList = uniqueSeriesNames.map(seriesName => {
-    // Find the first painting in this series to use its cover image
-    const matchingPainting = paintings.find(p => p.series === seriesName);
-    const coverImage = matchingPainting && matchingPainting.images && matchingPainting.images.length > 0
-      ? matchingPainting.images[0]
-      : "https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=800&q=80"; // fallback
-
-    return {
-      name: seriesName,
-      tag: seriesName,
-      image: coverImage
-    };
-  });
+  const seriesList = uniqueSeriesNames
+    .map(seriesName => {
+      const matchingPainting = paintings.find(p => p.series === seriesName && p.images?.length > 0);
+      return matchingPainting
+        ? { name: seriesName, tag: seriesName, image: matchingPainting.images[0] }
+        : null;
+    })
+    .filter((s): s is { name: string; tag: string; image: string } => s !== null);
 
   return (
     <div className="flex flex-col w-full min-h-screen bg-background">
       {/* Hero Section */}
       <section className="relative w-full h-[85vh] flex items-center justify-center overflow-hidden">
-        {/* Background Image */}
-        <div className="absolute inset-0 z-0">
-          <Image
-            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1920&q=80"
-            alt="Hero abstract painting background"
-            fill
-            priority
-            className="object-cover brightness-[0.95] dark:brightness-[0.4] transition-all duration-700"
+        {/* Background: no photography here — kept purely typographic/textural
+            so the actual paintings (in the gallery) stay the visual focus.
+            A soft radial glow plus a faint grain keeps it from feeling flat. */}
+        <div className="absolute inset-0 z-0 bg-background">
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_60%_at_50%_40%,rgba(201,168,76,0.08),transparent_65%)]" />
+          <div
+            className="absolute inset-0 opacity-[0.03]"
+            style={{
+              backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E\")",
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/30" />
         </div>
 
         {/* Hero Content */}
         <div className="relative z-10 mx-auto max-w-4xl text-center px-6 md:px-12 flex flex-col items-center gap-6 animate-fade-in">
           <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium">Fine Art Portfolio</span>
-          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-extralight tracking-tight leading-none text-foreground">
+          <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-extralight tracking-tight leading-none text-foreground [text-wrap:balance]">
             Capturing the Ephemeral
           </h1>
-          <p className="max-w-xl text-sm sm:text-base font-light tracking-wide text-muted leading-relaxed">
+          <p className="max-w-xl text-sm sm:text-base font-light tracking-wide text-muted leading-relaxed [text-wrap:pretty]">
             Exploring human connection, visceral energy, and organic textures through oils, heavy acrylics, and digital dreamscapes.
           </p>
           <div className="mt-4 flex gap-4">
             <Link
               href="/gallery"
-              className="flex h-12 items-center justify-center border border-foreground bg-foreground text-background text-xs uppercase tracking-widest px-8 hover:bg-transparent hover:text-foreground transition-all duration-300"
+              className="flex h-12 items-center justify-center border border-foreground bg-foreground text-background text-xs uppercase tracking-widest px-8 hover:bg-transparent hover:text-foreground transition-colors duration-300"
             >
               View Gallery
             </Link>
             <Link
               href="/about"
-              className="flex h-12 items-center justify-center border border-border-subtle bg-transparent text-foreground text-xs uppercase tracking-widest px-8 hover:border-foreground transition-all duration-300"
+              className="flex h-12 items-center justify-center border border-border-subtle bg-transparent text-foreground text-xs uppercase tracking-widest px-8 hover:border-foreground transition-colors duration-300"
             >
               Artist Statement
             </Link>
