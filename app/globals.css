@@ -60,3 +60,13 @@ body {
   animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+  }
+  * {
+    scroll-behavior: auto !important;
+  }
+}
+

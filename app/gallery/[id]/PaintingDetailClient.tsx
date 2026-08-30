@@ -377,7 +377,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               {painting.title}
             </h1>
             <div className="flex items-center gap-4 mt-2">
-              <span className="text-xl font-light text-accent tracking-wide">{painting.formattedPrice}</span>
+              <span className="text-xl font-light text-accent tracking-wide tabular-nums">{painting.formattedPrice}</span>
               <span className={`text-[10px] uppercase tracking-widest px-2.5 py-0.5 border font-light ${
                 painting.status === 'available'
                   ? 'border-emerald-500/20 bg-emerald-500/5 text-emerald-600 dark:text-emerald-400'

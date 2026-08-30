@@ -130,7 +130,7 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
     return () => clearTimeout(t);
   }, [onClose]);
   return (
-    <div style={S.toast(type)} onClick={onClose}>
+    <div style={S.toast(type)} onClick={onClose} role="status" aria-live="polite">
       {type === 'success' ? '✓ ' : '✗ '}{msg}
     </div>
   );
@@ -442,6 +442,7 @@ function PaintingForm({
                       type="button"
                       onClick={() => removeImageAt(idx)}
                       title="Remove image"
+                      aria-label={`Remove image ${idx + 1}`}
                       style={{
                         position: 'absolute', top: '3px', right: '3px', width: '20px', height: '20px',
                         borderRadius: '50%', border: 'none', background: 'rgba(0,0,0,0.7)', color: '#fca5a5',
@@ -455,6 +456,7 @@ function PaintingForm({
                       onClick={() => moveImage(idx, -1)}
                       disabled={idx === 0}
                       title="Move earlier"
+                      aria-label={`Move image ${idx + 1} earlier`}
                       style={{ ...S.btnGhost, padding: '0.15rem 0.5rem', fontSize: '0.7rem', opacity: idx === 0 ? 0.3 : 1 }}
                     >◀</button>
                     <button
@@ -462,6 +464,7 @@ function PaintingForm({
                       onClick={() => moveImage(idx, 1)}
                       disabled={idx === arr.length - 1}
                       title="Move later"
+                      aria-label={`Move image ${idx + 1} later`}
                       style={{ ...S.btnGhost, padding: '0.15rem 0.5rem', fontSize: '0.7rem', opacity: idx === arr.length - 1 ? 0.3 : 1 }}
                     >▶</button>
                   </div>

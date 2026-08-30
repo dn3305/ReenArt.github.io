@@ -123,7 +123,7 @@ function GalleryContent() {
                   <h3 className="font-serif text-lg font-light tracking-wide text-foreground group-hover:text-accent transition-colors">
                     {painting.title}
                   </h3>
-                  <span className="text-xs font-light text-muted shrink-0">
+                  <span className="text-xs font-light text-muted shrink-0 tabular-nums">
                     {painting.formattedPrice}
                   </span>
                 </div>
