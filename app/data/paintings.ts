@@ -26,13 +26,264 @@ export const paintings: Painting[] = [
     "price": 250,
     "formattedPrice": "$250",
     "description": "Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.",
-    "details": "* Edition: Original (1/1)\n* Framing: Unframed(with mount)\n* Signed: Signed on both the front and back\n* Certificate of Authenticity: Included",
+    "details": "* Edition: Original (1/1)\r\n* Framing: Unframed(with mount)\r\n* Signed: Signed on both the front and back\r\n* Certificate of Authenticity: Included",
     "images": [
       "/images/IMG_3269.jpg",
       "/images/IMG_9449.jpg",
       "/images/IMG_9466.jpg"
     ],
-    "status": "sold",
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Chaos1",
+    "title": "Chaos-1",
+    "series": "Chaos",
+    "size": "12”x12”",
+    "medium": "Acrylic on Paper",
+    "price": 380,
+    "formattedPrice": "$380",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/FullSizeRender.jpg",
+      "/images/IMG_5031.jpg",
+      "/images/IMG_5025.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Chaos2",
+    "title": "Chaos 2",
+    "series": "Chaos",
+    "size": "12”x12”",
+    "medium": "Acrylic on Paper",
+    "price": 380,
+    "formattedPrice": "$380",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/FullSizeRender.jpg",
+      "/images/IMG_5027.jpg",
+      "/images/IMG_5030.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Chaos3",
+    "title": "Chaos 3",
+    "series": "Chaos",
+    "size": "8”x8”",
+    "medium": "Acrylic on Paper",
+    "price": 250,
+    "formattedPrice": "$250",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/FullSizeRender.jpg",
+      "/images/IMG_5033.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Chaos4",
+    "title": "Chaos 4",
+    "series": "Chaos",
+    "size": "8”x8”",
+    "medium": "Acrylic on Paper",
+    "price": 250,
+    "formattedPrice": "$250",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_5032.jpg",
+      "/images/FullSizeRender.jpg",
+      "/images/IMG_7655.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Void1",
+    "title": "Void 1",
+    "series": "Void",
+    "size": "8”x11”",
+    "medium": "Acrylic on Paper",
+    "price": 320,
+    "formattedPrice": "$320",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_7670.jpg",
+      "/images/IMG_7671.jpg",
+      "/images/IMG_4514.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Void2",
+    "title": "Void 2",
+    "series": "Void",
+    "size": "8”x11”",
+    "medium": "Acrylic on Paper",
+    "price": 320,
+    "formattedPrice": "$320",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_4513.jpg",
+      "/images/IMG_5090.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Piano1",
+    "title": "Piano",
+    "series": "Cover Art",
+    "size": "8”x8”",
+    "medium": "Acrylic on Paper",
+    "price": 280,
+    "formattedPrice": "$280",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_4518.jpg",
+      "/images/IMG_1075.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Record1",
+    "title": "Record",
+    "series": "Cover Art",
+    "size": "8”x8”",
+    "medium": "Acrylic on Paper",
+    "price": 280,
+    "formattedPrice": "$280",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_4517.jpg",
+      "/images/IMG_0985.jpg",
+      "/images/IMG_0975.jpg",
+      "/images/IMG_1099.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Restless1",
+    "title": "Restless 1",
+    "series": "Cover Art",
+    "size": "10”x10”",
+    "medium": "Acrylic on Paper",
+    "price": 300,
+    "formattedPrice": "$300",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_6377.jpg",
+      "/images/IMG_6372.jpg",
+      "/images/FullSizeRender.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Restless2",
+    "title": "Restless 2",
+    "series": "Cover Art",
+    "size": "10”x10”",
+    "medium": "Acryloc on paper",
+    "price": 300,
+    "formattedPrice": "$300",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_6372.jpg",
+      "/images/IMG_6376.jpg",
+      "/images/FullSizeRender.jpg"
+    ],
+    "status": "available",
+    "year": "2026"
+  },
+  {
+    "id": "Molten-Path1",
+    "title": "Molten Path",
+    "series": "Texture Artwork",
+    "size": "24”x30”",
+    "medium": "Mixed media on canvas",
+    "price": 1600,
+    "formattedPrice": "$1,600",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_6572.jpg",
+      "/images/IMG_9870.jpg",
+      "/images/IMG_8201.jpg"
+    ],
+    "status": "available",
+    "year": "2025"
+  },
+  {
+    "id": "Inferno-of-femininity1",
+    "title": "Inferno of Femininity",
+    "series": "Texture Artwork",
+    "size": "30”x36”",
+    "medium": "Mixed media on canvas",
+    "price": 2200,
+    "formattedPrice": "$2,200",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_0372.jpg",
+      "/images/IMG_5691.jpg",
+      "/images/7A2B78C2-C2FE-45F0-8CC3-50CACA1A7D55.jpg",
+      "/images/IMG_5707.jpg"
+    ],
+    "status": "available",
+    "year": "2025"
+  },
+  {
+    "id": "Golden-Opportunity1",
+    "title": "Golden Opportunity 1",
+    "series": "Texture Artwork",
+    "size": "14”x19”",
+    "medium": "Texture on canvas",
+    "price": 520,
+    "formattedPrice": "$520",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_8400.jpg",
+      "/images/IMG_4739.jpg"
+    ],
+    "status": "available",
+    "year": "2024"
+  },
+  {
+    "id": "Golden-Opportunity-2",
+    "title": "Golden Opportunity 2",
+    "series": "Texture Artwork",
+    "size": "24”x36”",
+    "medium": "Texture on canvas",
+    "price": 800,
+    "formattedPrice": "$800",
+    "description": "",
+    "details": "",
+    "images": [
+      "/images/IMG_0850.jpg",
+      "/images/IMG_0852.jpg",
+      "/images/IMG_0857.jpg",
+      "/images/IMG_0871.jpg"
+    ],
+    "status": "available",
     "year": "2026"
   }
 ];

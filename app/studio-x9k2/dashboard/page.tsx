@@ -138,9 +138,9 @@ function Toast({ msg, type, onClose }: { msg: string; type: 'success' | 'error';
 
 // ─── Client-side image compression ─────────────────────────────────────────
 
-const MAX_UPLOAD_DIMENSION = 2000; // longest side, px
-const TARGET_MAX_BYTES = 300 * 1024; // 300KB
-const MIN_JPEG_QUALITY = 0.5;
+const MAX_UPLOAD_DIMENSION = 1600; // longest side, px
+const TARGET_MAX_BYTES = 100 * 1024; // 100KB target
+const MIN_JPEG_QUALITY = 0.35;
 
 // Resizes and re-encodes an image in the browser before it ever leaves the
 // device, so a multi-megabyte phone photo doesn't get uploaded (and stored
@@ -355,7 +355,12 @@ function PaintingForm({
       <div style={grid2}>
         <div>
           <label style={S.label}>PAINTING ID (slug)</label>
-          <input style={S.input} value={form.id} onChange={e => set('id', e.target.value)} placeholder="my-painting-slug" />
+          <input
+            style={S.input}
+            value={form.id}
+            onChange={e => set('id', e.target.value.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, ''))}
+            placeholder="my-painting-slug"
+          />
         </div>
         <div>
           <label style={S.label}>TITLE</label>

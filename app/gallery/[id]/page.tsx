@@ -17,7 +17,12 @@ export async function generateStaticParams() {
 
 export default async function PaintingDetailPage({ params }: Props) {
   const resolvedParams = await params;
-  const painting = paintings.find((p) => p.id === resolvedParams.id);
+  const rawId = resolvedParams.id ? decodeURIComponent(resolvedParams.id).trim() : '';
+  const normalize = (s: string) => s.toLowerCase().replace(/[\s_]+/g, '-');
+
+  const painting = paintings.find(
+    (p) => p.id === rawId || normalize(p.id) === normalize(rawId)
+  );
 
   if (!painting) {
     notFound();

@@ -92,6 +92,14 @@ export async function POST(req: Request) {
     // Sanitize filename to avoid weird URL characters
     savedName = savedName.replace(/[^a-zA-Z0-9._-]/g, '_');
 
+    // Prevent overwrites on common generic camera/export names like FullSizeRender or duplicates
+    const isGenericName = /^fullsizerender/i.test(savedName) || /^image\d*/i.test(savedName);
+    const imagesDir = path.join(process.cwd(), 'public', 'images');
+    if (isGenericName || fs.existsSync(path.join(imagesDir, savedName))) {
+      const timestamp = Date.now().toString(36);
+      savedName = `${timestamp}-${savedName}`;
+    }
+
     // 1. Try local disk save (works on local dev machine)
     let savedOnDisk = false;
     try {
