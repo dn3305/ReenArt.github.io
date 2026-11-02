@@ -558,7 +558,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(updated),
       });
       const data = await res.json();
-      if (data.success && data.pushedToGitHub) {
+      if (data.success && data.savedToOracle) {
         showToast(data.removedImageCount > 0 && !data.imagesDeleted
           ? 'Painting updated, but removed images could not be deleted from Oracle/Drive.'
           : 'Painting updated!', data.removedImageCount > 0 && !data.imagesDeleted ? 'error' : 'success');
@@ -586,7 +586,7 @@ export default function AdminDashboard() {
         body: JSON.stringify(p),
       });
       const data = await res.json();
-      if (data.success && data.pushedToGitHub) {
+      if (data.success && data.savedToOracle) {
         showToast('Painting added!', 'success');
         setTab('paintings');
         loadPaintings();
@@ -608,7 +608,7 @@ export default function AdminDashboard() {
     try {
       const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE' });
       const data = await res.json();
-      if (data.success && data.pushedToGitHub) {
+      if (data.success && data.savedToOracle) {
         showToast(data.removedImageCount > 0 && !data.imagesDeleted
           ? 'Painting deleted, but its images could not be deleted from Oracle/Drive.'
           : 'Painting deleted', data.removedImageCount > 0 && !data.imagesDeleted ? 'error' : 'success');
@@ -622,16 +622,6 @@ export default function AdminDashboard() {
     } finally {
       setSaving(false);
       inFlightRef.current = false;
-    }
-  }
-
-  async function handlePushToGitHub() {
-    const res = await fetch('/api/admin/github/push', { method: 'POST' });
-    const data = await res.json();
-    if (data.success) {
-      showToast(`GitHub sync: ${data.pushed.join(', ')}`, 'success');
-    } else {
-      showToast(data.error || 'GitHub sync failed', 'error');
     }
   }
 
@@ -810,27 +800,13 @@ export default function AdminDashboard() {
                 Server Integrations
               </h2>
               <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                Admin changes use the server-side <code>GITHUB_TOKEN</code> configured in Vercel. The token is never stored in this browser. Painting images are uploaded to the Oracle image server and backed up to Google Drive.{' '}
+                Painting details and images are stored on the Oracle server and backed up to Google Drive.{' '}
                 <a href="https://github.com/dn3305/ReenArt.github.io" target="_blank" rel="noreferrer"
                   style={{ color: '#c9a84c' }}>
                   dn3305/ReenArt.github.io
                 </a>.
               </p>
 
-              <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
-                <h3 style={{ color: '#ccc', fontWeight: 400, fontSize: '1rem', marginTop: 0, marginBottom: '0.5rem' }}>
-                  Push to GitHub
-                </h3>
-                <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                  Save, add, and delete actions sync the painting catalog to GitHub automatically. Use this button only to initialize the catalog if needed.
-                </p>
-                <button
-                  style={S.btnGold}
-                  onClick={handlePushToGitHub}
-                >
-                  ⬆ Sync paintings.csv to GitHub
-                </button>
-              </div>
             </div>
           </div>
         )}

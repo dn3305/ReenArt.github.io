@@ -1,6 +1,6 @@
 # Oracle image storage setup
 
-Vercel continues to host the Next.js site and admin API. Oracle stores public image files and copies each accepted upload to the Google Drive backup folder. The image bytes are not sent to GitHub. Painting catalog data remains in `paintings.csv` on GitHub.
+Vercel continues to host the Next.js site and admin API. Oracle stores public image files and the live `paintings.csv` and private `sold.csv` files, with Google Drive backups. Routine painting edits and sales no longer create GitHub commits. The repository CSVs remain as a seed copy for builds and migration recovery.
 
 ## 1. Set up the image hostname
 
@@ -24,7 +24,7 @@ The folder ID from the supplied Drive link is:
 1Dg-9vSA_B4n6IsfHuNb2lNG9mNuFMwqq
 ```
 
-Configure rclone on Oracle under the account that will run the image service. Create a Google Drive remote named `reenartdrive`, authorize the Drive owner account (or share the folder with the service account as Editor), and set the remote's advanced `root_folder_id` to the ID above. The link's Viewer setting is only for public viewing; the account used by rclone must have write access. Keep the rclone config readable by the service user only. The service uses `reenartdrive:` as its destination and keeps each original filename in the backup folder.
+Configure rclone on Oracle under the account that will run the image service. Create a Google Drive remote named `reenartdrive`, authorize the Drive owner account (or share the folder with the service account as Editor), and set the remote's advanced `root_folder_id` to the ID above. Keep the rclone config readable by the service user only. The service uses `reenartdrive:` as its destination and keeps each original filename in the backup folder. **Set the Drive folder's General access to Restricted before migrating `sold.csv`; it contains buyer names, emails, and shipping addresses.**
 
 ## 3. Run the Oracle upload service
 
@@ -51,13 +51,12 @@ When updating an already installed service, copy the updated `server.mjs`, Nginx
 In the Vercel project settings, add these variables to the production environment (and preview environments if needed):
 
 ```text
-GITHUB_TOKEN=<GitHub PAT with repository Contents read/write access>
 ORACLE_UPLOAD_URL=https://images.reenart.com/upload
 ORACLE_UPLOAD_TOKEN=<same random secret as IMAGE_STORAGE_TOKEN>
 NEXT_PUBLIC_IMAGE_BASE_URL=https://images.reenart.com/images
 ```
 
-Keep `GITHUB_TOKEN` and `ORACLE_UPLOAD_TOKEN` server-only. Do not prefix either secret with `NEXT_PUBLIC_`. `NEXT_PUBLIC_IMAGE_BASE_URL` is public and is used by the site when rendering catalog and profile images. Redeploy Vercel after changing environment variables.
+Keep `ORACLE_UPLOAD_TOKEN` server-only. Do not prefix it with `NEXT_PUBLIC_`. `NEXT_PUBLIC_IMAGE_BASE_URL` is public and is used by the site when rendering catalog and profile images. Redeploy Vercel after changing environment variables.
 
 ## 5. Migrate the images already in GitHub
 
@@ -72,3 +71,9 @@ node scripts/migrate-images-to-oracle.mjs
 The script copies every image in `public/images` to Oracle and Drive using its existing filename. It exits with an error if any copy or backup fails. After verifying the site and every image on Oracle, remove the old files from `public/images` in a follow-up repository change; the source code retains its local `/images/...` fallback for development when `NEXT_PUBLIC_IMAGE_BASE_URL` is unset.
 
 New admin uploads use the painting ID as their slug: the first image is `<slug>_cover_image.jpg`, the next is `<slug>_image2.jpg`, then `<slug>_image3.jpg`, and so on. These uploads go directly from Vercel's server API to Oracle and are copied to Drive by the Oracle service.
+
+## 6. Migrate and use the live CSV catalog
+
+The updated Node service accepts authenticated `GET` and `PUT` requests at `/catalog/paintings.csv` and `/catalog/sold.csv`. Each saved CSV is backed up to `reenartdrive:/catalog/` under the same filename. Captured payments use `/catalog/sale`, which updates the painting status and appends its invoice row together, preserving the existing payment, dashboard, and invoice data flow.
+
+After installing the updated `server.mjs` and confirming the Drive folder is Restricted, run `scripts/migrate-csv-to-oracle.mjs` from the repository root with `ORACLE_UPLOAD_URL` and `ORACLE_UPLOAD_TOKEN` set in the shell. Keep the repository CSVs as seed copies; Vercel reads the live versions from Oracle after deployment.

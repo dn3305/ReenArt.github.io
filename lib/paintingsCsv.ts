@@ -1,73 +1,16 @@
-import { fetchGitHubFile, pushFileToGitHub } from './githubFile';
+import { readOracleCatalog, writeOracleCatalog } from './oracleCatalog';
+import { parseCsvRows } from './csv';
+
+export { parseCsvRows, rowToLine, rowsToCsv } from './csv';
 
 export const PAINTINGS_CSV_PATH = 'paintings.csv';
 
-// Parses full CSV content into rows, respecting quoted fields that contain
-// embedded commas or newlines (e.g. multi-line "additional info" text).
-// Splitting on '\n' before parsing quotes corrupts any row whose quoted field
-// contains a real line break.
-export function parseCsvRows(content: string): string[][] {
-  const rows: string[][] = [];
-  let row: string[] = [];
-  let cell = '';
-  let inQuotes = false;
-
-  for (let i = 0; i < content.length; i++) {
-    const ch = content[i];
-    const next = content[i + 1];
-    if (inQuotes) {
-      if (ch === '"') {
-        if (next === '"') { cell += '"'; i++; }
-        else inQuotes = false;
-      } else {
-        cell += ch;
-      }
-    } else if (ch === '"') {
-      inQuotes = true;
-    } else if (ch === ',') {
-      row.push(cell); cell = '';
-    } else if (ch === '\n' || ch === '\r') {
-      if (ch === '\r' && next === '\n') i++;
-      row.push(cell); cell = '';
-      if (row.length > 1 || row[0] !== '') rows.push(row);
-      row = [];
-    } else {
-      cell += ch;
-    }
-  }
-  if (cell !== '' || row.length > 0) {
-    row.push(cell);
-    if (row.length > 1 || row[0] !== '') rows.push(row);
-  }
-  return rows;
+export async function readCsvRowsLive(_token?: string): Promise<string[][]> {
+  return readOracleCatalog('paintings');
 }
 
-function escapeCsvField(val: string): string {
-  if (val.includes(',') || val.includes('"') || val.includes('\n')) {
-    return '"' + val.replace(/"/g, '""') + '"';
-  }
-  return val;
-}
-
-export function rowToLine(fields: string[]): string {
-  return fields.map(escapeCsvField).join(',');
-}
-
-export function rowsToCsv(rows: string[][]): string {
-  return rows.map(rowToLine).join('\n');
-}
-
-export async function readCsvRowsLive(token?: string): Promise<string[][]> {
-  const live = await fetchGitHubFile(PAINTINGS_CSV_PATH, token);
-  if (live !== null) return parseCsvRows(live.content);
-  if (token) throw new Error('Could not read paintings.csv from GitHub; the catalog was left unchanged.');
-  return [
-    ['id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo', 'frameCharge'],
-  ];
-}
-
-export async function pushCsvToGitHub(csvContent: string, token: string, message: string, sha?: string | null): Promise<boolean> {
-  return pushFileToGitHub(PAINTINGS_CSV_PATH, csvContent, token, message, sha);
+export async function savePaintingsCsv(csvContent: string): Promise<boolean> {
+  return writeOracleCatalog('paintings', parseCsvRows(csvContent));
 }
 
 // Column order used throughout paintings.csv.

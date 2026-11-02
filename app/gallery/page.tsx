@@ -1,19 +1,30 @@
 'use client';
 
-import { Suspense } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
-import { paintings } from '../data/paintings';
+import type { Painting } from '../data/paintings';
 import { getPaintingImageUrl } from '../../lib/imageUrl';
 
 // Helper to get unique filters dynamically based on current catalog
-function getFilters(paintingsList: typeof paintings) {
+function getFilters(paintingsList: Painting[]) {
   const uniqueSeries = Array.from(new Set(paintingsList.map(p => p.series).filter(Boolean)));
   return ['All', ...uniqueSeries];
 }
 
 function GalleryContent() {
+  const [paintings, setPaintings] = useState<Painting[]>([]);
+  const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch('/api/catalog/paintings', { cache: 'no-store' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error('Could not load the painting catalog.');
+        setPaintings(await res.json());
+      })
+      .catch((error) => console.error('Gallery catalog load failed:', error))
+      .finally(() => setLoading(false));
+  }, []);
   const searchParams = useSearchParams();
   const router = useRouter();
   const seriesParam = searchParams.get('series');
@@ -37,6 +48,9 @@ function GalleryContent() {
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-12 animate-fade-in">
+      {loading && <GallerySkeleton />}
+      {!loading && paintings.length === 0 && <p className="py-16 text-center text-sm text-muted">The gallery is temporarily unavailable. Please try again shortly.</p>}
+      {!loading && paintings.length > 0 && <>
       {/* Intro Header */}
       <div className="flex flex-col gap-4 text-center max-w-2xl mx-auto mb-16">
         <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium">The Collections</span>
@@ -133,6 +147,7 @@ function GalleryContent() {
           ))}
         </div>
       )}
+      </>}
     </div>
   );
 }

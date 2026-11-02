@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { readCsvRowsLive, rowsToCsv, pushCsvToGitHub } from '../../../../../lib/paintingsCsv';
-import { getAdminGitHubToken } from '../../../../../lib/adminGitHubToken';
+import { readCsvRowsLive, rowsToCsv, savePaintingsCsv } from '../../../../../lib/paintingsCsv';
 import { deleteOracleImages, imagesRemovedFromCatalog } from '../../../../../lib/oracleImages';
 
 // PUT — update a painting row by id
@@ -11,11 +10,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await req.json();
-    const token = getAdminGitHubToken();
-    if (!token) {
-      return NextResponse.json({ success: false, error: 'GITHUB_TOKEN is not configured on the server.' }, { status: 503 });
-    }
-    const rows = await readCsvRowsLive(token);
+    const rows = await readCsvRowsLive();
     let updated = false;
 
     const newRows = rows.map((cols, idx) => {
@@ -45,17 +40,15 @@ export async function PUT(
     }
 
     const newCsvContent = rowsToCsv(newRows);
-    const pushedToGitHub = token
-      ? await pushCsvToGitHub(newCsvContent, token, '🎨 Update paintings.csv via Admin Dashboard')
-      : false;
+    const savedToOracle = await savePaintingsCsv(newCsvContent);
 
-    if (!pushedToGitHub) {
-      return NextResponse.json({ success: false, error: 'Could not save painting data to GitHub.' }, { status: 502 });
+    if (!savedToOracle) {
+      return NextResponse.json({ success: false, error: 'Could not save painting data to Oracle and Drive.' }, { status: 502 });
     }
     const previousImages = rows.find((cols) => cols[0] === id)?.[8] || '';
     const removedImages = imagesRemovedFromCatalog(previousImages, newRows.slice(1));
     const imagesDeleted = await deleteOracleImages(removedImages);
-    return NextResponse.json({ success: true, pushedToGitHub, imagesDeleted, removedImageCount: removedImages.length });
+    return NextResponse.json({ success: true, savedToOracle, imagesDeleted, removedImageCount: removedImages.length });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }
@@ -68,11 +61,7 @@ export async function DELETE(
 ) {
   try {
     const { id } = await params;
-    const token = getAdminGitHubToken();
-    if (!token) {
-      return NextResponse.json({ success: false, error: 'GITHUB_TOKEN is not configured on the server.' }, { status: 503 });
-    }
-    const rows = await readCsvRowsLive(token);
+    const rows = await readCsvRowsLive();
     const deletedPainting = rows.find((cols, idx) => idx > 0 && cols[0] === id);
     const newRows = rows.filter((cols, idx) => idx === 0 || cols[0] !== id);
 
@@ -81,16 +70,14 @@ export async function DELETE(
     }
 
     const newCsvContent = rowsToCsv(newRows);
-    const pushedToGitHub = token
-      ? await pushCsvToGitHub(newCsvContent, token, '🎨 Update paintings.csv via Admin Dashboard')
-      : false;
+    const savedToOracle = await savePaintingsCsv(newCsvContent);
 
-    if (!pushedToGitHub) {
-      return NextResponse.json({ success: false, error: 'Could not save painting data to GitHub.' }, { status: 502 });
+    if (!savedToOracle) {
+      return NextResponse.json({ success: false, error: 'Could not save painting data to Oracle and Drive.' }, { status: 502 });
     }
     const removedImages = imagesRemovedFromCatalog(deletedPainting?.[8] || '', newRows.slice(1));
     const imagesDeleted = await deleteOracleImages(removedImages);
-    return NextResponse.json({ success: true, pushedToGitHub, imagesDeleted, removedImageCount: removedImages.length });
+    return NextResponse.json({ success: true, savedToOracle, imagesDeleted, removedImageCount: removedImages.length });
   } catch (e) {
     return NextResponse.json({ error: String(e) }, { status: 500 });
   }

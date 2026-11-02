@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import Razorpay from 'razorpay';
-import { paintings } from '../../data/paintings';
+import { getLivePaintings } from '../../../lib/oracleCatalog';
 import { getUsdToInrRate } from '../../../lib/exchangeRate';
 
 export async function POST(req: Request) {
@@ -36,6 +36,7 @@ export async function POST(req: Request) {
     // Prices are never trusted from the client — look up the real, current
     // price server-side by painting id so a tampered request can't pay less
     // than the actual price.
+    const paintings = await getLivePaintings();
     const painting = paintings.find((p) => p.id === paintingId);
     if (!painting) {
       return NextResponse.json({ error: 'Painting not found.' }, { status: 400 });

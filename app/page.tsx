@@ -1,9 +1,12 @@
 import Image from "next/image";
 import Link from "next/link";
-import { paintings } from "./data/paintings";
+import { getLivePaintings } from "../lib/oracleCatalog";
 import { getPaintingImageUrl } from "../lib/imageUrl";
 
-export default function Home() {
+export const dynamic = 'force-dynamic';
+
+export default async function Home() {
+  const paintings = await getLivePaintings();
   // Feature the 3 most recent paintings that have at least one image, so this
   // section stays correct as the catalog changes instead of pointing at
   // hardcoded ids that can go stale.

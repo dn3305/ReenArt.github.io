@@ -1,5 +1,4 @@
-import { readCsvRowsLive, rowsToCsv, pushCsvToGitHub, CSV_COLUMNS } from './paintingsCsv';
-import { appendSoldRecord } from './soldCsv';
+import { completeOracleSale, findSoldRecordByPaymentId } from './soldCsv';
 import { generateInvoicePdf } from './invoicePdf';
 import { sendReceiptEmail } from './receiptEmail';
 
@@ -29,9 +28,9 @@ export type ProcessResult =
 // actually completes the sale. Idempotent: if the painting is already
 // marked sold, this is a no-op.
 export async function processCapturedPayment(payment: RazorpayPaymentEntity): Promise<ProcessResult> {
-  const githubToken = process.env.GITHUB_TOKEN;
-  if (!githubToken) {
-    console.error('GITHUB_TOKEN not configured — cannot mark painting sold.');
+  const oracleToken = process.env.ORACLE_UPLOAD_TOKEN;
+  if (!oracleToken || !process.env.ORACLE_UPLOAD_URL) {
+    console.error('Oracle catalog storage is not configured — cannot mark painting sold.');
     return { ok: false, error: 'Server not fully configured.', retryable: false };
   }
 
@@ -54,38 +53,16 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
     return { ok: false, error: 'Missing order metadata.', retryable: false };
   }
 
-  const rows = await readCsvRowsLive(githubToken);
-  const statusIdx = CSV_COLUMNS.indexOf('status');
-  const idIdx = CSV_COLUMNS.indexOf('id');
-  const rowIdx = rows.findIndex((r, i) => i > 0 && r[idIdx] === paintingId);
-
-  if (rowIdx === -1) {
-    console.error('Painting not found for id', paintingId);
-    return { ok: false, error: 'Painting not found.', retryable: false };
-  }
-
-  if (rows[rowIdx][statusIdx] === 'sold') {
-    return { ok: true, invoiceNumber: '', alreadyProcessed: true };
-  }
+  const existingSale = await findSoldRecordByPaymentId(payment.id);
+  if (existingSale) return { ok: true, invoiceNumber: existingSale.invoiceNumber, alreadyProcessed: true };
 
   const paintingTitle = notes.paintingTitle || paintingId;
 
-  rows[rowIdx][statusIdx] = 'sold';
-  const newCsvContent = rowsToCsv(rows);
-  const pushed = await pushCsvToGitHub(
-    newCsvContent,
-    githubToken,
-    `💰 Mark "${paintingTitle}" as sold (payment ${payment.id})`
-  );
-
-  if (!pushed) {
-    return { ok: false, error: 'Failed to update painting status.', retryable: true };
-  }
-
   const paidAt = new Date(payment.created_at * 1000);
 
-  const { invoiceNumber } = await appendSoldRecord(
-    {
+  let invoiceNumber: string;
+  try {
+    const sale = await completeOracleSale({
       paintingId,
       paintingTitle,
       orderId: payment.order_id,
@@ -104,9 +81,13 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
       frameOption,
       baseAmount,
       frameAmount,
-    },
-    githubToken
-  );
+    });
+    if (sale.alreadyProcessed) return { ok: true, invoiceNumber: sale.invoiceNumber, alreadyProcessed: true };
+    invoiceNumber = sale.invoiceNumber;
+  } catch (error) {
+    console.error('Oracle sale commit failed:', error);
+    return { ok: false, error: 'Failed to update the painting sale record.', retryable: true };
+  }
 
   const methodDetails = payment.method === 'upi'
     ? { vpa: payment.vpa }

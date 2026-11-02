@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import path from 'path';
+import { fetchOracleWithRetry } from '../../../../lib/oracleRequest';
 
 export const runtime = 'nodejs';
 
@@ -52,16 +53,17 @@ export async function POST(req: Request) {
 
     const imageLabel = position === 0 ? 'cover_image' : `image${position + 1}`;
     const filename = `${slug}_${imageLabel}${extension === '.jpeg' ? '.jpg' : extension}`;
-    const upload = new FormData();
-    upload.append('file', new Blob([buffer], { type: file.type || 'application/octet-stream' }), filename);
-    upload.append('filename', filename);
-
-    const response = await fetch(oracleUploadUrl, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${oracleUploadToken}` },
-      body: upload,
-      cache: 'no-store',
-      signal: AbortSignal.timeout(60_000),
+    const response = await fetchOracleWithRetry(oracleUploadUrl, () => {
+      const upload = new FormData();
+      upload.append('file', new Blob([buffer], { type: file.type || 'application/octet-stream' }), filename);
+      upload.append('filename', filename);
+      return {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${oracleUploadToken}` },
+        body: upload,
+        cache: 'no-store',
+        signal: AbortSignal.timeout(60_000),
+      };
     });
     const result = await response.json().catch(() => ({}));
     if (!response.ok || result.success !== true) {

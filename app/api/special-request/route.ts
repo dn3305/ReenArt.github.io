@@ -15,8 +15,7 @@ function escapeHtml(s: string): string {
 export async function POST(req: Request) {
   try {
     const apiKey = process.env.RESEND_API_KEY;
-    const githubToken = process.env.GITHUB_TOKEN;
-    if (!apiKey || !githubToken) {
+    if (!apiKey || !process.env.ORACLE_UPLOAD_TOKEN || !process.env.ORACLE_UPLOAD_URL) {
       return NextResponse.json({ error: 'Not configured.' }, { status: 500 });
     }
 
@@ -28,7 +27,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Missing payment ID or message.' }, { status: 400 });
     }
 
-    const record = await findSoldRecordByPaymentId(paymentId, githubToken);
+    const record = await findSoldRecordByPaymentId(paymentId);
     if (!record) {
       return NextResponse.json({ error: 'Order not found.' }, { status: 404 });
     }

@@ -7,12 +7,11 @@ export async function GET(
   { params }: { params: Promise<{ paymentId: string }> }
 ) {
   const { paymentId } = await params;
-  const githubToken = process.env.GITHUB_TOKEN;
-  if (!githubToken) {
+  if (!process.env.ORACLE_UPLOAD_TOKEN || !process.env.ORACLE_UPLOAD_URL) {
     return NextResponse.json({ error: 'Server not fully configured.' }, { status: 500 });
   }
 
-  const record = await findSoldRecordByPaymentId(paymentId, githubToken);
+  const record = await findSoldRecordByPaymentId(paymentId);
   if (!record) {
     return NextResponse.json({ error: 'Invoice not found.' }, { status: 404 });
   }
