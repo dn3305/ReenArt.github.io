@@ -39,11 +39,13 @@ export default function AboutPage() {
   };
 
   const exhibitions = [
-    { year: '2026', title: 'Whispers of Color (Solo)', location: 'Ramprastha Gallery, Vaishali' },
-    { year: '2025', title: 'A Touch of Gold (Group)', location: 'India Art Fair, New Delhi' },
-    { year: '2025', title: 'Harmony in Contrast (Solo)', location: 'The Studio, Vaishali' },
-    { year: '2024', title: 'Ethereal Brushstrokes (Group)', location: 'Contemporary Art Fest, Mumbai' }
-  ];
+  { year: '2025', title: 'First Take', location: 'Abir India' },
+  { year: '2025', title: 'Aifacs', location: 'AIFACS' },
+  { year: '2025', title: 'Group Exhibition', location: 'Gandhi Darshan Art Gallery' },
+  { year: '2025', title: 'Group Exhibition', location: 'Kaarigari Foundation' },
+  { year: '2025', title: 'Between the Lines', location: 'Delhi Art Centre' },
+  { year: '2026', title: 'Material Matters', location: 'Gujral Foundation' }
+];
 
   return (
     <div className="mx-auto w-full max-w-7xl px-6 py-16 md:px-12 animate-fade-in flex-1 flex flex-col justify-start">
@@ -102,20 +104,25 @@ export default function AboutPage() {
             <div className="flex flex-col gap-4 text-sm font-light text-muted leading-relaxed tracking-wide">
               <h2 className="font-serif text-2xl text-foreground font-light tracking-wide">Biography</h2>
               <p>
-                Nazia Naureen is an Indian abstract artist whose work is a vivid reflection of her imagination, emotions, and life&apos;s struggles. Deeply inspired by the complexities of the human experience, she channels her inner world onto the canvas, using bold colors and dynamic forms to convey the depth of her feelings.
+                Nazia Naureen is a self-taught abstract artist based in India. Her practice investigates the psychological and social structures that shape emotional experience, examining how memory, attachment, silence, and social conditioning influence human behaviour.
+
               </p>
               <p>
-                Each piece is an exploration of her personal journey, where joy, pain, resilience, and hope converge in abstract expression. Her art serves as a visual diary, allowing her to communicate what words cannot, and inviting viewers to connect with the emotional energy that infuses her work.
-              </p>
+Through abstraction, she develops concept-led bodies of work that explore the invisible structures underlying emotional life, working across diverse mediums and visual languages.              </p>
               <p>
-                Drawing from her rich cultural heritage and personal experiences, Nazia weaves stories of strength and vulnerability into her abstract compositions. She believes that art has the power to heal, transform, and inspire — offering a space for contemplation and connection through a powerful means of self-expression and storytelling.
-              </p>
+Her work has been exhibited in solo and group exhibitions across India, including Gujral House’s Material Matters (2026) and Abir India – First Take (2025). Her practice also extends into interdisciplinary collaborations, with her paintings serving as the conceptual basis for original musical compositions and cover artwork.              </p>
             </div>
 
             <div className="flex flex-col gap-4 text-sm font-light text-muted leading-relaxed tracking-wide">
               <h2 className="font-serif text-2xl text-foreground font-light tracking-wide">Artist Statement</h2>
               <p className="italic border-l border-accent/40 pl-6 py-1 font-serif text-base text-accent">
-                &ldquo;Abstract art is the language of the soul, where every brushstroke speaks the unspoken and every color reveals the unseen.&rdquo;
+                &ldquo;My practice investigates the psychological and social structures that shape emotional experience. I am interested in why certain emotions remain difficult to recognise, articulate, or express, and how silence, expectation, inherited beliefs, and social conditioning influence our inner worlds. While informed by personal experience, my work extends beyond autobiography to explore emotional conditions that are collectively experienced yet rarely understood.
+
+Working through abstraction, I examine the emotional residues of attachment, conflict, absence, longing, anger, and memory—not as isolated experiences, but as patterns that continue to shape perception and behaviour. Rather than illustrating these states, I develop visual systems through which they emerge as processes of accumulation, tension, and transformation.
+
+As a self-taught artist, my practice evolves through observation, experimentation, and an engagement with psychology and human behaviour. Each body of work emerges from a conceptual inquiry, allowing material, form, and process to respond to its underlying questions without adhering to a fixed visual language.
+
+My work approaches abstraction as a space for emotional complexity and reflection, inviting viewers to encounter aspects of themselves that have been normalised, suppressed, or left without language..&rdquo;
               </p>
             </div>
 
