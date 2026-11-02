@@ -131,7 +131,7 @@ Through abstraction, she develops concept-led bodies of work that explore the in
   <br /><br />
   My work approaches abstraction as a space for emotional complexity and reflection, inviting viewers to encounter aspects of themselves that have been normalised, suppressed, or left without language.&rdquo;
 </p>
-
+            </div>
             {/* Contact Info */}
             <div className="flex flex-col gap-3 pt-2">
               <h2 className="font-serif text-2xl text-foreground font-light tracking-wide">Contact</h2>
