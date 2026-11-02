@@ -1,7 +1,9 @@
 import PDFDocument from 'pdfkit';
+import { ARTWORK_TERMS, ARTWORK_TERMS_TITLE, ARTWORK_TERMS_URL } from './artworkTerms';
 
 const BUSINESS_NAME = 'ReenArt Studio by Nazia Naureen';
-const BUSINESS_ADDRESS = 'Ramprastha Greens, Vaishali, India — Near Vaishali Metro';
+const BUSINESS_ADDRESS = 'Delhi NCR, India';
+const BUSINESS_PHONE = '8860020689';
 const BUSINESS_EMAIL = 'naureennaz00@gmail.com';
 
 export interface InvoiceDetails {
@@ -20,6 +22,9 @@ export interface InvoiceDetails {
   shipState: string;
   shipPincode: string;
   shipCountry: string;
+  frameOption?: string;
+  baseAmount?: number;
+  frameAmount?: number;
 }
 
 function formatAmount(amountSmallestUnit: number, currency: string): string {
@@ -44,13 +49,13 @@ export function generateInvoicePdf(details: InvoiceDetails): Promise<Buffer> {
   doc.font('Helvetica-Bold').fontSize(20).text(BUSINESS_NAME);
   doc.font('Helvetica').fontSize(10).fillColor('#555')
     .text(BUSINESS_ADDRESS)
+    .text(`Phone: ${BUSINESS_PHONE}`)
     .text(BUSINESS_EMAIL);
   doc.moveDown(1.5);
 
   // Invoice title + number/date
   doc.fillColor('#000').font('Helvetica-Bold').fontSize(16).text('INVOICE');
   doc.font('Helvetica').fontSize(10).fillColor('#333');
-  const topY = doc.y;
   doc.text(`Invoice Number: ${details.invoiceNumber}`);
   doc.text(`Date: ${details.paidAt.toLocaleDateString('en-US', { dateStyle: 'long' })}`);
   doc.moveDown(1.5);
@@ -80,11 +85,16 @@ export function generateInvoicePdf(details: InvoiceDetails): Promise<Buffer> {
   doc.moveTo(56, tableTop + 16).lineTo(539, tableTop + 16).strokeColor('#ccc').stroke();
 
   const rowY = tableTop + 26;
+  const frameLabel = details.frameOption === 'with-frame' ? 'With Frame' : 'Without Frame';
   doc.font('Helvetica').fontSize(10).fillColor('#333');
-  doc.text(details.paintingTitle, col1, rowY, { width: 340 });
-  doc.text(formatAmount(details.amount, details.currency), col2, rowY, { width: 100, align: 'right' });
+  doc.text(`${details.paintingTitle} — ${frameLabel}`, col1, rowY, { width: 340 });
+  const baseAmount = details.baseAmount ?? details.amount;
+  const frameAmount = details.frameAmount ?? 0;
+  doc.text(formatAmount(baseAmount, details.currency), col2, rowY, { width: 100, align: 'right' });
+  doc.fontSize(9).fillColor('#555').text('Frame charge', col1, rowY + 20, { width: 340 });
+  doc.text(formatAmount(frameAmount, details.currency), col2, rowY + 20, { width: 100, align: 'right' });
 
-  const totalY = rowY + 30;
+  const totalY = rowY + 50;
   doc.moveTo(56, totalY - 6).lineTo(539, totalY - 6).strokeColor('#ccc').stroke();
   doc.font('Helvetica-Bold').fontSize(11).fillColor('#000');
   doc.text('Total Paid', col1, totalY);
@@ -105,6 +115,22 @@ export function generateInvoicePdf(details: InvoiceDetails): Promise<Buffer> {
   const footerTop = doc.y;
   doc.font('Helvetica').fontSize(9).fillColor('#999')
     .text('Thank you for supporting original art. This invoice confirms your purchase from ReenArt Studio.', 56, footerTop, { width: 483 });
+
+  // Include the complete purchase terms on every invoice, with a direct link
+  // to the always-current online terms page.
+  doc.addPage();
+  doc.fillColor('#000').font('Helvetica-Bold').fontSize(16).text(ARTWORK_TERMS_TITLE);
+  doc.font('Helvetica').fontSize(9).fillColor('#555')
+    .text('These terms apply to the physical artwork purchase shown on this invoice. The invoice includes physical ownership only unless a separate license is agreed in writing.', { width: 483, lineGap: 3 });
+  doc.moveDown(0.8);
+  for (const term of ARTWORK_TERMS) {
+    doc.font('Helvetica-Bold').fontSize(10).fillColor('#111').text(term.title, { continued: true });
+    doc.font('Helvetica').fontSize(9).fillColor('#444').text(` — ${term.text}`, { width: 483, lineGap: 2 });
+    doc.moveDown(0.55);
+  }
+  doc.moveDown(0.4);
+  doc.font('Helvetica').fontSize(9).fillColor('#555').text('View the terms online: ');
+  doc.fillColor('#8b6914').text(ARTWORK_TERMS_URL, { link: ARTWORK_TERMS_URL, underline: true });
 
   doc.end();
   return done;

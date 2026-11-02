@@ -34,6 +34,7 @@ export async function PUT(
           body.images ?? cols[8],
           body.description ?? cols[9],
           body.additionalInfo ?? cols[10] ?? '',
+          body.frameCharge ?? cols[11] ?? '0',
         ];
       }
       return cols;

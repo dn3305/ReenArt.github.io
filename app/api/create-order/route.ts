@@ -17,6 +17,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const paintingId = String(body.paintingId || '');
     const payCurrency = body.currency === 'INR' ? 'INR' : 'USD';
+    const frameOption = body.frameOption === 'without-frame' ? 'without-frame' : 'with-frame';
     const payerName = String(body.payerName || '').trim();
     const payerEmail = String(body.payerEmail || '').trim();
     const shipAddress = String(body.shipAddress || '').trim();
@@ -45,15 +46,20 @@ export async function POST(req: Request) {
     if (!(painting.price > 0)) {
       return NextResponse.json({ error: 'This painting has no price set.' }, { status: 400 });
     }
+    const frameChargeUsd = frameOption === 'with-frame' ? painting.frameCharge : 0;
 
-    let amount: number; // smallest currency unit (cents or paise)
+    let baseAmount: number;
+    let frameAmount: number;
     let rateUsed: number | null = null;
     if (payCurrency === 'USD') {
-      amount = Math.round(painting.price * 100);
+      baseAmount = Math.round(painting.price * 100);
+      frameAmount = Math.round(frameChargeUsd * 100);
     } else {
       rateUsed = await getUsdToInrRate();
-      amount = Math.round(painting.price * rateUsed * 100);
+      baseAmount = Math.round(painting.price * rateUsed * 100);
+      frameAmount = Math.round(frameChargeUsd * rateUsed * 100);
     }
+    const amount = baseAmount + frameAmount; // smallest currency unit (cents or paise)
 
     if (amount < 100) {
       return NextResponse.json(
@@ -74,6 +80,10 @@ export async function POST(req: Request) {
           paintingId: painting.id,
           paintingTitle: painting.title,
           priceUsd: String(painting.price),
+          frameOption,
+          frameChargeUsd: String(frameChargeUsd),
+          baseAmount: String(baseAmount),
+          frameAmount: String(frameAmount),
           payerName,
           payerEmail,
           shipAddress,

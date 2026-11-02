@@ -15,6 +15,7 @@ function paintingFromRow(cols: string[]) {
     images: cols[8] || '',
     description: cols[9] || '',
     additionalInfo: cols[10] || '',
+    frameCharge: cols[11] || '0',
   };
 }
 
@@ -38,7 +39,7 @@ export async function POST(req: Request) {
     rows.push([
       body.id, body.title, body.series, body.dimensions,
       body.medium, body.price, body.status, body.year,
-      body.images, body.description, body.additionalInfo || '',
+      body.images, body.description, body.additionalInfo || '', body.frameCharge || '0',
     ]);
     const newCsvContent = rowsToCsv(rows);
 

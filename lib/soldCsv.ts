@@ -6,7 +6,7 @@ export const SOLD_CSV_PATH = 'sold.csv';
 export const SOLD_CSV_COLUMNS = [
   'invoiceNumber', 'paintingId', 'paintingTitle', 'orderId', 'paymentId',
   'amount', 'currency', 'buyerName', 'buyerEmail', 'method', 'paidAt',
-  'shipAddress', 'shipCity', 'shipState', 'shipPincode', 'shipCountry',
+  'shipAddress', 'shipCity', 'shipState', 'shipPincode', 'shipCountry', 'frameOption', 'baseAmount', 'frameAmount',
 ] as const;
 
 export interface SoldRecord {
@@ -26,6 +26,9 @@ export interface SoldRecord {
   shipState: string;
   shipPincode: string;
   shipCountry: string;
+  frameOption: string;
+  baseAmount: number;
+  frameAmount: number;
 }
 
 function recordToRow(r: SoldRecord): string[] {
@@ -33,6 +36,7 @@ function recordToRow(r: SoldRecord): string[] {
     r.invoiceNumber, r.paintingId, r.paintingTitle, r.orderId, r.paymentId,
     String(r.amount), r.currency, r.buyerName, r.buyerEmail, r.method, r.paidAt,
     r.shipAddress, r.shipCity, r.shipState, r.shipPincode, r.shipCountry,
+    r.frameOption, String(r.baseAmount), String(r.frameAmount),
   ];
 }
 
@@ -54,12 +58,30 @@ export function rowToRecord(row: string[]): SoldRecord {
     shipState: row[13] || '',
     shipPincode: row[14] || '',
     shipCountry: row[15] || '',
+    frameOption: row[16] || 'without-frame',
+    baseAmount: Number(row[17]) || Number(row[5]) || 0,
+    frameAmount: Number(row[18]) || 0,
   };
 }
 
 async function readSoldRowsLive(token?: string): Promise<{ rows: string[][]; sha: string | null }> {
   const live = await fetchGitHubFile(SOLD_CSV_PATH, token);
-  if (live !== null) return { rows: parseCsvRows(live.content), sha: live.sha };
+  if (live !== null) {
+    const rows = parseCsvRows(live.content);
+    const header = rows[0] || [];
+    const frameOptionIdx = header.indexOf('frameOption');
+    const baseAmountIdx = header.indexOf('baseAmount');
+    const frameAmountIdx = header.indexOf('frameAmount');
+    if (frameOptionIdx === -1 || baseAmountIdx === -1 || frameAmountIdx === -1) {
+      rows[0] = [...header, ...SOLD_CSV_COLUMNS.slice(header.length)];
+      for (const row of rows.slice(1)) {
+        row[16] = row[16] || 'without-frame';
+        row[17] = row[17] || row[5] || '0';
+        row[18] = row[18] || '0';
+      }
+    }
+    return { rows, sha: live.sha };
+  }
   return { rows: [[...SOLD_CSV_COLUMNS]], sha: null };
 }
 

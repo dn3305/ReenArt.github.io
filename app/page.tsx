@@ -40,7 +40,7 @@ export default function Home() {
             fill
             priority
             unoptimized
-            className="object-cover brightness-[0.95] dark:brightness-[0.35]"
+            className="object-cover object-[15%_center] brightness-[0.95] dark:brightness-[0.35] md:object-center"
           />
           {/* Top and bottom fade into the surrounding black, plus a soft
               center darkening so the headline stays readable. */}

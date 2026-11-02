@@ -8,6 +8,7 @@ export interface Painting {
   size: string;
   medium: string;
   price: number;
+  frameCharge: number;
   formattedPrice: string;
   description: string;
   details: string;
@@ -24,6 +25,7 @@ export const paintings: Painting[] = [
     "size": "13\"x12\"",
     "medium": "Ink on paper",
     "price": 250,
+    "frameCharge": 50,
     "formattedPrice": "$250",
     "description": "Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.",
     "details": "* Edition: Original (1/1)\r\n* Framing: Unframed(with mount)\r\n* Signed: Signed on both the front and back\r\n* Certificate of Authenticity: Included",
@@ -41,12 +43,13 @@ export const paintings: Painting[] = [
     "series": "Chaos",
     "size": "12”x12”",
     "medium": "Acrylic on Paper",
-    "price": 380,
-    "formattedPrice": "$380",
+    "price": 420,
+    "frameCharge": 50,
+    "formattedPrice": "$420",
     "description": "",
     "details": "",
     "images": [
-      "/images/FullSizeRender.jpg",
+      "/images/mvzeezp4-FullSizeRender.jpg",
       "/images/IMG_5031.jpg",
       "/images/IMG_5025.jpg"
     ],
@@ -59,12 +62,13 @@ export const paintings: Painting[] = [
     "series": "Chaos",
     "size": "12”x12”",
     "medium": "Acrylic on Paper",
-    "price": 380,
-    "formattedPrice": "$380",
+    "price": 400,
+    "frameCharge": 50,
+    "formattedPrice": "$400",
     "description": "",
     "details": "",
     "images": [
-      "/images/FullSizeRender.jpg",
+      "/images/mvzeg96c-FullSizeRender.jpg",
       "/images/IMG_5027.jpg",
       "/images/IMG_5030.jpg"
     ],
@@ -77,13 +81,17 @@ export const paintings: Painting[] = [
     "series": "Chaos",
     "size": "8”x8”",
     "medium": "Acrylic on Paper",
-    "price": 250,
-    "formattedPrice": "$250",
+    "price": 300,
+    "frameCharge": 50,
+    "formattedPrice": "$300",
     "description": "",
     "details": "",
     "images": [
-      "/images/FullSizeRender.jpg",
-      "/images/IMG_5033.jpg"
+      "/images/mvzemh1l-FullSizeRender.jpg",
+      "/images/IMG_5033.jpg",
+      "/images/IMG_7657.jpg",
+      "/images/IMG_7652.jpg",
+      "/images/mvzemrpc-IMG_7662.jpg"
     ],
     "status": "available",
     "year": "2026"
@@ -94,14 +102,18 @@ export const paintings: Painting[] = [
     "series": "Chaos",
     "size": "8”x8”",
     "medium": "Acrylic on Paper",
-    "price": 250,
-    "formattedPrice": "$250",
+    "price": 300,
+    "frameCharge": 50,
+    "formattedPrice": "$300",
     "description": "",
     "details": "",
     "images": [
+      "/images/mvzeo825-FullSizeRender.jpg",
       "/images/IMG_5032.jpg",
-      "/images/FullSizeRender.jpg",
-      "/images/IMG_7655.jpg"
+      "/images/IMG_7655.jpg",
+      "/images/mvzeob4q-IMG_5032.jpg",
+      "/images/IMG_7658.jpg",
+      "/images/IMG_7666.jpg"
     ],
     "status": "available",
     "year": "2026"
@@ -113,6 +125,7 @@ export const paintings: Painting[] = [
     "size": "8”x11”",
     "medium": "Acrylic on Paper",
     "price": 320,
+    "frameCharge": 50,
     "formattedPrice": "$320",
     "description": "",
     "details": "",
@@ -131,6 +144,7 @@ export const paintings: Painting[] = [
     "size": "8”x11”",
     "medium": "Acrylic on Paper",
     "price": 320,
+    "frameCharge": 50,
     "formattedPrice": "$320",
     "description": "",
     "details": "",
@@ -147,13 +161,17 @@ export const paintings: Painting[] = [
     "series": "Cover Art",
     "size": "8”x8”",
     "medium": "Acrylic on Paper",
-    "price": 280,
-    "formattedPrice": "$280",
+    "price": 320,
+    "frameCharge": 50,
+    "formattedPrice": "$320",
     "description": "",
     "details": "",
     "images": [
       "/images/IMG_4518.jpg",
-      "/images/IMG_1075.jpg"
+      "/images/IMG_1075.jpg",
+      "/images/IMG_8665.jpg",
+      "/images/IMG_8668.jpg",
+      "/images/IMG_8782.jpg"
     ],
     "status": "available",
     "year": "2026"
@@ -164,8 +182,9 @@ export const paintings: Painting[] = [
     "series": "Cover Art",
     "size": "8”x8”",
     "medium": "Acrylic on Paper",
-    "price": 280,
-    "formattedPrice": "$280",
+    "price": 320,
+    "frameCharge": 50,
+    "formattedPrice": "$320",
     "description": "",
     "details": "",
     "images": [
@@ -184,13 +203,14 @@ export const paintings: Painting[] = [
     "size": "10”x10”",
     "medium": "Acrylic on Paper",
     "price": 300,
+    "frameCharge": 50,
     "formattedPrice": "$300",
     "description": "",
     "details": "",
     "images": [
+      "/images/mvzeqy4r-FullSizeRender.jpg",
       "/images/IMG_6377.jpg",
-      "/images/IMG_6372.jpg",
-      "/images/FullSizeRender.jpg"
+      "/images/IMG_6372.jpg"
     ],
     "status": "available",
     "year": "2026"
@@ -202,13 +222,14 @@ export const paintings: Painting[] = [
     "size": "10”x10”",
     "medium": "Acryloc on paper",
     "price": 300,
+    "frameCharge": 50,
     "formattedPrice": "$300",
     "description": "",
     "details": "",
     "images": [
+      "/images/FullSizeRender.jpg",
       "/images/IMG_6372.jpg",
-      "/images/IMG_6376.jpg",
-      "/images/FullSizeRender.jpg"
+      "/images/IMG_6376.jpg"
     ],
     "status": "available",
     "year": "2026"
@@ -220,6 +241,7 @@ export const paintings: Painting[] = [
     "size": "24”x30”",
     "medium": "Mixed media on canvas",
     "price": 1600,
+    "frameCharge": 50,
     "formattedPrice": "$1,600",
     "description": "",
     "details": "",
@@ -238,6 +260,7 @@ export const paintings: Painting[] = [
     "size": "30”x36”",
     "medium": "Mixed media on canvas",
     "price": 2200,
+    "frameCharge": 50,
     "formattedPrice": "$2,200",
     "description": "",
     "details": "",
@@ -257,6 +280,7 @@ export const paintings: Painting[] = [
     "size": "14”x19”",
     "medium": "Texture on canvas",
     "price": 520,
+    "frameCharge": 50,
     "formattedPrice": "$520",
     "description": "",
     "details": "",
@@ -274,6 +298,7 @@ export const paintings: Painting[] = [
     "size": "24”x36”",
     "medium": "Texture on canvas",
     "price": 800,
+    "frameCharge": 50,
     "formattedPrice": "$800",
     "description": "",
     "details": "",

@@ -33,6 +33,9 @@ export async function GET(
     shipState: record.shipState,
     shipPincode: record.shipPincode,
     shipCountry: record.shipCountry,
+    frameOption: record.frameOption,
+    baseAmount: record.baseAmount,
+    frameAmount: record.frameAmount,
   });
 
   return new NextResponse(new Uint8Array(pdfBuffer), {

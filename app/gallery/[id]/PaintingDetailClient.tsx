@@ -46,6 +46,10 @@ declare global {
 }
 
 export default function PaintingDetailClient({ painting }: Props) {
+  const [frameOption, setFrameOption] = useState<'with-frame' | 'without-frame'>('with-frame');
+  const frameAmount = frameOption === 'with-frame' ? painting.frameCharge : 0;
+  const selectedPrice = painting.price + frameAmount;
+  const selectedPriceLabel = `$${selectedPrice.toLocaleString('en-US')}`;
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [isInquiryOpen, setIsInquiryOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -79,6 +83,7 @@ export default function PaintingDetailClient({ painting }: Props) {
   const [razorpayReady, setRazorpayReady] = useState(false);
   const [payCurrency, setPayCurrency] = useState<'USD' | 'INR'>('USD');
   const [inrPreview, setInrPreview] = useState<number | null>(null);
+  const [inrRate, setInrRate] = useState<number | null>(null);
   const [inrPreviewLoading, setInrPreviewLoading] = useState(false);
 
   const closePay = () => {
@@ -98,6 +103,7 @@ export default function PaintingDetailClient({ painting }: Props) {
     setRequestSent(false);
     setPayCurrency('USD');
     setInrPreview(null);
+    setInrRate(null);
     setInvoiceError(null);
     setInvoiceDownloaded(false);
   };
@@ -127,7 +133,7 @@ export default function PaintingDetailClient({ painting }: Props) {
       document.body.appendChild(a);
       a.click();
       a.remove();
-      URL.revokeObjectURL(url);
+      window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
       setInvoiceDownloaded(true);
     } catch (err) {
       setInvoiceError('Failed to download invoice. Please try again.');
@@ -168,7 +174,8 @@ export default function PaintingDetailClient({ painting }: Props) {
         const res = await fetch('/api/exchange-rate');
         const data = await res.json();
         if (res.ok && typeof data.rate === 'number') {
-          setInrPreview(Math.round(painting.price * data.rate));
+          setInrRate(data.rate);
+          setInrPreview(Math.round(selectedPrice * data.rate));
         }
       } catch (err) {
         // Non-fatal — the real amount still comes back correctly from
@@ -201,6 +208,7 @@ export default function PaintingDetailClient({ painting }: Props) {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           paintingId: painting.id,
+          frameOption,
           currency: payCurrency,
           payerName,
           payerEmail,
@@ -237,6 +245,7 @@ export default function PaintingDetailClient({ painting }: Props) {
             const verifyData = await verifyRes.json();
             if (verifyRes.ok && verifyData.success) {
               setPaySuccess({ paymentId: response.razorpay_payment_id });
+              void downloadInvoice(response.razorpay_payment_id);
             } else {
               setPayError(verifyData.error || 'Payment could not be verified. Please contact us before retrying.');
             }
@@ -380,7 +389,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               {painting.title}
             </h1>
             <div className="flex items-center gap-4 mt-2">
-              <span className="text-xl font-light text-accent tracking-wide tabular-nums">{painting.formattedPrice}</span>
+              <span className="text-xl font-light text-accent tracking-wide tabular-nums">{selectedPriceLabel}</span>
               <span className={`text-[10px] uppercase tracking-widest px-2.5 py-0.5 rounded-full border font-light backdrop-blur-md shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] ${
                 painting.status === 'available'
                   ? 'border-emerald-500/25 bg-emerald-500/10 text-emerald-600 dark:text-emerald-400'
@@ -388,6 +397,34 @@ export default function PaintingDetailClient({ painting }: Props) {
               }`}>
                 {painting.status}
               </span>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <h3 className="text-[10px] uppercase tracking-widest text-muted font-medium">Choose framing</h3>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setFrameOption('with-frame');
+                  if (inrRate !== null) setInrPreview(Math.round((painting.price + painting.frameCharge) * inrRate));
+                }}
+                className={`border px-3 py-3 text-left text-xs tracking-wide transition-colors ${frameOption === 'with-frame' ? 'border-accent bg-accent/10 text-foreground' : 'border-white/10 bg-white/5 text-muted hover:border-white/30'}`}
+              >
+                <span className="block">With Frame · ${(painting.price + painting.frameCharge).toLocaleString('en-US')}</span>
+                <span className="mt-1 block text-[10px] opacity-70">Includes ${painting.frameCharge.toLocaleString('en-US')} frame charge</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setFrameOption('without-frame');
+                  if (inrRate !== null) setInrPreview(Math.round(painting.price * inrRate));
+                }}
+                className={`border px-3 py-3 text-left text-xs tracking-wide transition-colors ${frameOption === 'without-frame' ? 'border-accent bg-accent/10 text-foreground' : 'border-white/10 bg-white/5 text-muted hover:border-white/30'}`}
+              >
+                <span className="block">Without Frame · {painting.formattedPrice}</span>
+                <span className="mt-1 block text-[10px] opacity-70">Physical artwork only</span>
+              </button>
             </div>
           </div>
 
@@ -426,7 +463,12 @@ export default function PaintingDetailClient({ painting }: Props) {
           <div className="flex flex-col gap-2 bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-5">
             <h4 className="text-[10px] uppercase tracking-widest text-accent font-medium">Acquiring this Artwork</h4>
             <p className="text-[11px] font-light text-muted leading-relaxed tracking-wide">
-              {painting.details} Free worldwide shipping in custom wood crates or reinforced archival packaging. Ships within 5-7 business days with active tracking and insurance cover.
+              {painting.details} Worldwide shipping in reinforced archival packaging. Ships within 5-7 business days with active tracking.
+            </p>
+            <p className="text-[11px] font-light text-muted leading-relaxed tracking-wide">
+              Checkout covers the physical artwork only. Copyright and exclusive usage rights remain with the artist. For exclusive or commercial licensing,{' '}
+              <button type="button" onClick={() => setIsInquiryOpen(true)} className="text-accent underline underline-offset-2 hover:text-foreground">send an enquiry for this painting</button>.
+              {' '}See <Link href="/terms" className="text-accent underline underline-offset-2 hover:text-foreground">Artwork Ownership &amp; Usage Rights</Link>.
             </p>
           </div>
 
@@ -437,7 +479,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                 onClick={() => setIsPayOpen(true)}
                 className="w-full h-12 border border-foreground bg-foreground text-background text-xs uppercase tracking-widest hover:bg-transparent hover:text-foreground transition-all duration-300 font-medium"
               >
-                Pay Now — {painting.formattedPrice}
+                Pay Now — {selectedPriceLabel}
               </button>
               <button
                 onClick={() => setIsInquiryOpen(true)}
@@ -605,7 +647,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                     Pay for {painting.title}
                   </h2>
                   <p className="text-[10px] text-muted tracking-wide mt-1">
-                    {painting.formattedPrice} — payment processed securely via Razorpay.
+                    {selectedPriceLabel} {frameOption === 'with-frame' ? 'with frame' : 'without frame'} — payment processed securely via Razorpay.
                   </p>
                 </div>
 
@@ -616,6 +658,32 @@ export default function PaintingDetailClient({ painting }: Props) {
                 )}
 
                 <div className="flex flex-col gap-4">
+                  <div className="flex flex-col gap-1.5">
+                    <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Framing</label>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFrameOption('with-frame');
+                          if (inrRate !== null) setInrPreview(Math.round((painting.price + painting.frameCharge) * inrRate));
+                        }}
+                        className={`h-11 border text-xs uppercase tracking-widest transition-colors ${frameOption === 'with-frame' ? 'border-foreground bg-foreground text-background font-medium' : 'border-border-subtle text-muted hover:border-foreground hover:text-foreground'}`}
+                      >
+                        With Frame — ${(painting.price + painting.frameCharge).toLocaleString('en-US')}
+                        <span className="block text-[9px] normal-case tracking-normal opacity-70">Includes ${painting.frameCharge} frame</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFrameOption('without-frame');
+                          if (inrRate !== null) setInrPreview(Math.round(painting.price * inrRate));
+                        }}
+                        className={`h-11 border text-xs uppercase tracking-widest transition-colors ${frameOption === 'without-frame' ? 'border-foreground bg-foreground text-background font-medium' : 'border-border-subtle text-muted hover:border-foreground hover:text-foreground'}`}
+                      >
+                        Without Frame — {painting.formattedPrice}
+                      </button>
+                    </div>
+                  </div>
                   <div className="flex flex-col gap-1.5">
                     <label className="text-[10px] uppercase tracking-widest text-muted font-medium">Pay In</label>
                     <div className="grid grid-cols-2 gap-2">
@@ -628,7 +696,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                             : 'border-border-subtle text-muted hover:border-foreground hover:text-foreground'
                         }`}
                       >
-                        USD — {painting.formattedPrice}
+                        USD — {selectedPriceLabel}
                         <span className="block text-[9px] normal-case tracking-normal opacity-70">International card</span>
                       </button>
                       <button
@@ -739,7 +807,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                     {isPaying
                       ? 'Processing…'
                       : payCurrency === 'USD'
-                        ? `Pay ${painting.formattedPrice}`
+                        ? `Pay ${selectedPriceLabel}`
                         : `Pay ${inrPreview !== null ? `₹${inrPreview.toLocaleString('en-IN')}` : '…'}`}
                   </button>
                 </div>
@@ -763,7 +831,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                   )}
                   {!invoiceDownloaded && !invoiceError && (
                     <p className="text-[10px] font-light text-accent tracking-wide mt-1">
-                      Download your invoice to continue.
+                      Your invoice is being prepared and will download automatically.
                     </p>
                   )}
                 </div>

@@ -1,19 +1,18 @@
-id,title,series,size,medium,price,status,year,images,description,details
-echoes-of-closeness,Attachment 1,Attachment,"13""x12""",Ink on paper,1,sold,2026,"IMG_3269.jpg, IMG_9449.jpg, IMG_9466.jpg","Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.","* Edition: Original (1/1)
+id,title,series,size,medium,price,status,year,images,description,details,frameCharge
+echoes-of-closeness,Attachment 1,Attachment,"13""x12""",Ink on paper,250,sold,2026,"IMG_3269.jpg, IMG_9449.jpg, IMG_9466.jpg","Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.","* Edition: Original (1/1)
 * Framing: Unframed(with mount)
-* Signed: Signed on both the front and back
-* Certificate of Authenticity: Included"
-Chaos1,Chaos-1,Chaos,12”x12”,Acrylic on Paper,420,available,2026,"mvzeezp4-FullSizeRender.jpg, IMG_5031.jpg, IMG_5025.jpg",,
-Chaos2,Chaos 2,Chaos,12”x12”,Acrylic on Paper,400,available,2026,"mvzeg96c-FullSizeRender.jpg, IMG_5027.jpg, IMG_5030.jpg",,
-Chaos3,Chaos 3,Chaos,8”x8”,Acrylic on Paper,300,available,2026,"mvzemh1l-FullSizeRender.jpg, IMG_5033.jpg, IMG_7657.jpg, IMG_7652.jpg, mvzemrpc-IMG_7662.jpg",,
-Chaos4,Chaos 4,Chaos,8”x8”,Acrylic on Paper,300,available,2026,"mvzeo825-FullSizeRender.jpg, IMG_5032.jpg, IMG_7655.jpg, mvzeob4q-IMG_5032.jpg, IMG_7658.jpg, IMG_7666.jpg",,
-Void1,Void 1,Void,8”x11”,Acrylic on Paper ,320,available,2026,"IMG_7670.jpg, IMG_7671.jpg, IMG_4514.jpg",,
-Void2,Void 2,Void,8”x11”,Acrylic on Paper,320,available,2026,"IMG_4513.jpg, IMG_5090.jpg",,
-Piano1,Piano,Cover Art,8”x8”,Acrylic on Paper,320,available,2026,"IMG_4518.jpg, IMG_1075.jpg, IMG_8665.jpg, IMG_8668.jpg, IMG_8782.jpg",,
-Record1,Record,Cover Art,8”x8”,Acrylic on Paper,320,available,2026,"IMG_4517.jpg, IMG_0985.jpg, IMG_0975.jpg, IMG_1099.jpg",,
-Restless1,Restless 1,Cover Art,10”x10”,Acrylic on Paper,300,available,2026,"mvzeqy4r-FullSizeRender.jpg, IMG_6377.jpg, IMG_6372.jpg",,
-Restless2,Restless 2,Cover Art,10”x10”,Acryloc on paper,300,available,2026,"FullSizeRender.jpg, IMG_6372.jpg, IMG_6376.jpg",,
-Molten-Path1,Molten Path,Texture Artwork,24”x30”,Mixed media on canvas,1600,available,2025,"IMG_6572.jpg, IMG_9870.jpg, IMG_8201.jpg",,
-Inferno-of-femininity1,Inferno of Femininity,Texture Artwork,30”x36”,Mixed media on canvas,2200,available,2025,"IMG_0372.jpg, IMG_5691.jpg, 7A2B78C2-C2FE-45F0-8CC3-50CACA1A7D55.jpg, IMG_5707.jpg",,
-Golden-Opportunity1,Golden Opportunity 1,Texture Artwork,14”x19”,Texture on canvas,520,available,2024,"IMG_8400.jpg, IMG_4739.jpg",,
-Golden-Opportunity-2,Golden Opportunity 2,Texture Artwork,24”x36”,Texture on canvas,800,available,2026,"IMG_0850.jpg, IMG_0852.jpg, IMG_0857.jpg, IMG_0871.jpg",,
+* Certificate of Authenticity: Included",50
+Chaos1,Chaos-1,Chaos,12”x12”,Acrylic on Paper,420,available,2026,"mvzeezp4-FullSizeRender.jpg, IMG_5031.jpg, IMG_5025.jpg",,,50
+Chaos2,Chaos 2,Chaos,12”x12”,Acrylic on Paper,400,available,2026,"mvzeg96c-FullSizeRender.jpg, IMG_5027.jpg, IMG_5030.jpg",,,50
+Chaos3,Chaos 3,Chaos,8”x8”,Acrylic on Paper,300,available,2026,"mvzemh1l-FullSizeRender.jpg, IMG_5033.jpg, IMG_7657.jpg, IMG_7652.jpg, mvzemrpc-IMG_7662.jpg",,,50
+Chaos4,Chaos 4,Chaos,8”x8”,Acrylic on Paper,300,available,2026,"mvzeo825-FullSizeRender.jpg, IMG_5032.jpg, IMG_7655.jpg, mvzeob4q-IMG_5032.jpg, IMG_7658.jpg, IMG_7666.jpg",,,50
+Void1,Void 1,Void,8”x11”,Acrylic on Paper ,320,available,2026,"IMG_7670.jpg, IMG_7671.jpg, IMG_4514.jpg",,,50
+Void2,Void 2,Void,8”x11”,Acrylic on Paper,320,available,2026,"IMG_4513.jpg, IMG_5090.jpg",,,50
+Piano1,Piano,Cover Art,8”x8”,Acrylic on Paper,320,available,2026,"IMG_4518.jpg, IMG_1075.jpg, IMG_8665.jpg, IMG_8668.jpg, IMG_8782.jpg",,,50
+Record1,Record,Cover Art,8”x8”,Acrylic on Paper,320,available,2026,"IMG_4517.jpg, IMG_0985.jpg, IMG_0975.jpg, IMG_1099.jpg",,,50
+Restless1,Restless 1,Cover Art,10”x10”,Acrylic on Paper,300,available,2026,"mvzeqy4r-FullSizeRender.jpg, IMG_6377.jpg, IMG_6372.jpg",,,50
+Restless2,Restless 2,Cover Art,10”x10”,Acryloc on paper,300,available,2026,"FullSizeRender.jpg, IMG_6372.jpg, IMG_6376.jpg",,,50
+Molten-Path1,Molten Path,Texture Artwork,24”x30”,Mixed media on canvas,1600,available,2025,"IMG_6572.jpg, IMG_9870.jpg, IMG_8201.jpg",,,50
+Inferno-of-femininity1,Inferno of Femininity,Texture Artwork,30”x36”,Mixed media on canvas,2200,available,2025,"IMG_0372.jpg, IMG_5691.jpg, 7A2B78C2-C2FE-45F0-8CC3-50CACA1A7D55.jpg, IMG_5707.jpg",,,50
+Golden-Opportunity1,Golden Opportunity 1,Texture Artwork,14”x19”,Texture on canvas,520,available,2024,"IMG_8400.jpg, IMG_4739.jpg",,,50
+Golden-Opportunity-2,Golden Opportunity 2,Texture Artwork,24”x36”,Texture on canvas,800,available,2026,"IMG_0850.jpg, IMG_0852.jpg, IMG_0857.jpg, IMG_0871.jpg",,,50

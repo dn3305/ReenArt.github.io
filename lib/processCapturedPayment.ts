@@ -45,6 +45,9 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
   const shipPincode = notes.shipPincode || '';
   const shipCountry = notes.shipCountry || '';
   const specialRequest = notes.specialRequest || '';
+  const frameOption = notes.frameOption || 'without-frame';
+  const baseAmount = Number(notes.baseAmount) || payment.amount;
+  const frameAmount = Number(notes.frameAmount) || 0;
 
   if (!paintingId || !buyerEmail) {
     console.error('Payment missing paintingId/payerEmail in notes:', payment.id);
@@ -98,6 +101,9 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
       shipState,
       shipPincode,
       shipCountry,
+      frameOption,
+      baseAmount,
+      frameAmount,
     },
     githubToken
   );
@@ -128,6 +134,9 @@ export async function processCapturedPayment(payment: RazorpayPaymentEntity): Pr
     shipState,
     shipPincode,
     shipCountry,
+    frameOption,
+    baseAmount,
+    frameAmount,
   });
 
   await sendReceiptEmail({

@@ -16,8 +16,30 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "ReenArt",
+  metadataBase: new URL("https://reenart.com"),
+  title: "ReenArt | Fine Art by Nazia Naureen",
   description: "Explore original paintings, mixed media, and digital art series by Nazia. Minimalist portfolio and gallery featuring available works for collectors.",
+  openGraph: {
+    title: "ReenArt | Fine Art by Nazia Naureen",
+    description: "Explore original paintings, mixed media, and digital art series by Nazia.",
+    url: "/",
+    siteName: "ReenArt",
+    images: [
+      {
+        url: "/reenart_logo.PNG",
+        width: 1254,
+        height: 1254,
+        alt: "ReenArt logo",
+      },
+    ],
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ReenArt | Fine Art by Nazia Naureen",
+    description: "Explore original paintings, mixed media, and digital art series by Nazia.",
+    images: ["/reenart_logo.PNG"],
+  },
 };
 
 export default function RootLayout({
@@ -103,6 +125,7 @@ export default function RootLayout({
             <div className="flex gap-6 text-[10px] uppercase tracking-widest text-muted">
               <a href="https://www.instagram.com/reenart_/" target="_blank" rel="noreferrer" className="hover:text-accent transition-colors">Instagram</a>
               <Link href="/about" className="hover:text-accent transition-colors">Inquiries</Link>
+              <Link href="/terms" className="hover:text-accent transition-colors">Terms &amp; Conditions</Link>
             </div>
           </div>
         </footer>

@@ -62,7 +62,7 @@ export async function readCsvRowsLive(token?: string): Promise<string[][]> {
   if (live !== null) return parseCsvRows(live.content);
   if (token) throw new Error('Could not read paintings.csv from GitHub; the catalog was left unchanged.');
   return [
-    ['id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo'],
+    ['id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo', 'frameCharge'],
   ];
 }
 
@@ -72,5 +72,5 @@ export async function pushCsvToGitHub(csvContent: string, token: string, message
 
 // Column order used throughout paintings.csv.
 export const CSV_COLUMNS = [
-  'id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo',
+  'id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo', 'frameCharge',
 ] as const;

@@ -161,6 +161,7 @@ async function run() {
     const size = getValue('size') || getValue('dimensions');
     const medium = getValue('medium');
     const priceRaw = getValue('price');
+    const frameChargeRaw = getValue('framecharge');
     const status = getValue('status').toLowerCase() === 'sold' ? 'sold' : 'available';
     const year = getValue('year') || new Date().getFullYear().toString();
     const imagesRaw = getValue('images');
@@ -174,6 +175,7 @@ async function run() {
 
     // Process price
     const priceNum = parseFloat(priceRaw.replace(/[^0-9.]/g, '')) || 0;
+    const frameCharge = parseFloat(frameChargeRaw.replace(/[^0-9.]/g, '')) || 0;
     const formattedPrice = priceNum > 0 
       ? `$${priceNum.toLocaleString()}`
       : 'Contact for Price';
@@ -188,6 +190,7 @@ async function run() {
       size,
       medium,
       price: priceNum,
+      frameCharge,
       formattedPrice,
       description,
       details,
@@ -207,6 +210,7 @@ export interface Painting {
   size: string;
   medium: string;
   price: number;
+  frameCharge: number;
   formattedPrice: string;
   description: string;
   details: string;

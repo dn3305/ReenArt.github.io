@@ -13,6 +13,7 @@ interface Painting {
   dimensions: string;
   medium: string;
   price: string;
+  frameCharge: string;
   status: string;
   year: string;
   images: string;
@@ -22,7 +23,7 @@ interface Painting {
 
 const EMPTY_PAINTING: Painting = {
   id: '', title: '', series: '', dimensions: '',
-  medium: '', price: '', status: 'available',
+  medium: '', price: '', frameCharge: '50', status: 'available',
   year: new Date().getFullYear().toString(),
   images: '', description: '', additionalInfo: '',
 };
@@ -391,9 +392,15 @@ function PaintingForm({
       </div>
       <div style={grid2}>
         <div>
-          <label style={S.label}>PRICE (USD)</label>
+          <label style={S.label}>BASE PRICE (WITHOUT FRAME, USD)</label>
           <input style={S.input} value={form.price} onChange={e => set('price', e.target.value)} placeholder="1200" />
         </div>
+        <div>
+          <label style={S.label}>FRAME CHARGE (USD)</label>
+          <input style={S.input} type="number" min="0" step="0.01" value={form.frameCharge} onChange={e => set('frameCharge', e.target.value)} placeholder="50" />
+        </div>
+      </div>
+      <div style={grid2}>
         <div>
           <label style={S.label}>STATUS</label>
           <select
