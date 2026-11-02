@@ -308,11 +308,19 @@ function PaintingForm({
   onSave,
   onCancel,
   saving,
+  allowImageUpload = true,
+  onSaveDraft,
+  saveLabel = 'Save Painting',
+  draftLabel = 'Save Draft',
 }: {
   initial: Painting;
   onSave: (p: Painting) => void;
   onCancel: () => void;
   saving: boolean;
+  allowImageUpload?: boolean;
+  onSaveDraft?: (p: Painting) => void;
+  saveLabel?: string;
+  draftLabel?: string;
 }) {
   const [form, setForm] = useState<Painting>(initial);
 
@@ -504,15 +512,26 @@ function PaintingForm({
             })}
           </div>
         )}
-        <div style={{ marginTop: '0.75rem' }}>
-          <label style={S.label}>UPLOAD IMAGES</label>
-          <ImageDropzone slug={form.id} nextPosition={getNextImagePosition()} onUploaded={addImageToForm} />
-        </div>
+        {allowImageUpload ? (
+          <div style={{ marginTop: '0.75rem' }}>
+            <label style={S.label}>UPLOAD IMAGES</label>
+            <ImageDropzone slug={form.id} nextPosition={getNextImagePosition()} onUploaded={addImageToForm} />
+          </div>
+        ) : (
+          <p style={{ color: '#a88d4b', fontSize: '0.78rem', marginTop: '0.75rem' }}>
+            Image uploads are disabled in drafts so nothing is sent to Oracle or Drive before publishing.
+          </p>
+        )}
       </div>
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
         <button style={S.btnGhost} onClick={onCancel}>Cancel</button>
+        {onSaveDraft && (
+          <button style={S.btnGhost} onClick={() => onSaveDraft(form)} disabled={saving}>
+            {draftLabel}
+          </button>
+        )}
         <button style={S.btnGold} onClick={() => onSave(form)} disabled={saving}>
-          {saving ? 'Saving…' : 'Save Painting'}
+          {saving ? 'Saving…' : saveLabel}
         </button>
       </div>
     </div>
@@ -521,12 +540,22 @@ function PaintingForm({
 
 // ─── Main Dashboard ───────────────────────────────────────────────────────────
 
-type Tab = 'paintings' | 'add' | 'settings';
+interface PaintingDraft {
+  key: string;
+  painting: Painting;
+}
+
+const DRAFTS_STORAGE_KEY = 'reenart-admin-painting-drafts-v1';
+
+type Tab = 'paintings' | 'drafts' | 'add' | 'settings';
 
 export default function AdminDashboard() {
   const router = useRouter();
   const [tab, setTab] = useState<Tab>('paintings');
   const [paintings, setPaintings] = useState<Painting[]>([]);
+  const [drafts, setDrafts] = useState<PaintingDraft[]>([]);
+  const [draftsLoaded, setDraftsLoaded] = useState(false);
+  const [editingDraftKey, setEditingDraftKey] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [editPainting, setEditPainting] = useState<Painting | null>(null);
   const [saving, setSaving] = useState(false);
@@ -534,6 +563,29 @@ export default function AdminDashboard() {
   const [search, setSearch] = useState('');
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const inFlightRef = useRef(false);
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(DRAFTS_STORAGE_KEY);
+      if (saved) {
+        const parsed: unknown = JSON.parse(saved);
+        if (Array.isArray(parsed)) setDrafts(parsed as PaintingDraft[]);
+      }
+    } catch (error) {
+      console.error('Could not load local painting drafts:', error);
+    } finally {
+      setDraftsLoaded(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!draftsLoaded) return;
+    try {
+      localStorage.setItem(DRAFTS_STORAGE_KEY, JSON.stringify(drafts));
+    } catch (error) {
+      console.error('Could not save local painting drafts:', error);
+    }
+  }, [drafts, draftsLoaded]);
 
   const showToast = useCallback((msg: string, type: 'success' | 'error') => {
     setToast({ msg, type });
@@ -593,6 +645,19 @@ export default function AdminDashboard() {
   }
 
   async function handleAddNew(p: Painting) {
+    const paintingId = p.id.trim().toLowerCase();
+    if (!paintingId) {
+      showToast('Enter a painting slug before publishing.', 'error');
+      return;
+    }
+    if (paintings.some((painting) => painting.id.toLowerCase() === paintingId)) {
+      showToast('That painting slug already exists. Choose a unique slug before publishing.', 'error');
+      return;
+    }
+    if (drafts.some((draft) => draft.key !== editingDraftKey && draft.painting.id.toLowerCase() === paintingId)) {
+      showToast('Another draft already uses that slug. Choose a unique slug before publishing.', 'error');
+      return;
+    }
     if (inFlightRef.current) return;
     inFlightRef.current = true;
     setSaving(true);
@@ -605,6 +670,8 @@ export default function AdminDashboard() {
       const data = await res.json();
       if (data.success && data.savedToOracle) {
         showToast('Painting added!', 'success');
+        setDrafts((current) => current.filter((draft) => draft.key !== editingDraftKey));
+        setEditingDraftKey(null);
         setTab('paintings');
         loadPaintings();
       } else if (data.success) {
@@ -616,6 +683,40 @@ export default function AdminDashboard() {
       setSaving(false);
       inFlightRef.current = false;
     }
+  }
+
+  function createDraft(source?: Painting) {
+    const usedIds = new Set([
+      ...paintings.map((painting) => painting.id.toLowerCase()),
+      ...drafts.map((draft) => draft.painting.id.toLowerCase()),
+    ]);
+    const slugBase = (source?.id || source?.title || 'new-painting')
+      .trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').replace(/^-+|-+$/g, '') || 'new-painting';
+    const base = source ? `${slugBase}-copy` : `${slugBase}-draft`;
+    let id = base;
+    let suffix = 2;
+    while (usedIds.has(id.toLowerCase())) id = `${base}-${suffix++}`;
+
+    const draft: PaintingDraft = {
+      key: crypto.randomUUID(),
+      painting: source
+        ? { ...source, id, title: `${source.title} (Copy)`, status: source.status === 'sold' ? 'available' : source.status }
+        : { ...EMPTY_PAINTING, id },
+    };
+    setDrafts((current) => [...current, draft]);
+    setEditingDraftKey(draft.key);
+    setTab('drafts');
+    showToast(source ? 'Duplicate created as a local draft.' : 'New local draft created.', 'success');
+  }
+
+  function updateDraft(key: string, painting: Painting) {
+    setDrafts((current) => current.map((draft) => draft.key === key ? { ...draft, painting } : draft));
+    showToast('Draft saved in this browser.', 'success');
+  }
+
+  function discardDraft(key: string) {
+    setDrafts((current) => current.filter((draft) => draft.key !== key));
+    if (editingDraftKey === key) setEditingDraftKey(null);
   }
 
   async function handleDelete(id: string) {
@@ -698,7 +799,7 @@ export default function AdminDashboard() {
             Painting Manager
           </h1>
           <p style={{ color: '#666', margin: '0.4rem 0 0', fontSize: '0.9rem' }}>
-            {paintings.length} paintings in the database
+            {paintings.length} paintings in the database · {drafts.length} local drafts
           </p>
         </div>
 
@@ -706,6 +807,9 @@ export default function AdminDashboard() {
         <div style={S.tabRow}>
           <button style={tabStyle('paintings')} onClick={() => setTab('paintings')}>
             ALL PAINTINGS
+          </button>
+          <button style={tabStyle('drafts')} onClick={() => setTab('drafts')}>
+            DRAFTS ({drafts.length})
           </button>
           <button style={tabStyle('add')} onClick={() => setTab('add')}>
             + ADD NEW
@@ -775,6 +879,9 @@ export default function AdminDashboard() {
                             <button style={S.btnEdit} onClick={() => { setEditPainting(p); setTab('paintings'); }}>
                               Edit
                             </button>
+                            <button style={S.btnGhost} onClick={() => createDraft(p)}>
+                              Duplicate to Draft
+                            </button>
                             <button style={S.btnDanger} onClick={() => setConfirmDelete(p.id)}>
                               Delete
                             </button>
@@ -789,6 +896,41 @@ export default function AdminDashboard() {
                     No paintings found
                   </p>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {tab === 'drafts' && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '1rem', marginBottom: '1.25rem' }}>
+              <p style={{ color: '#888', margin: 0, fontSize: '0.85rem' }}>
+                Drafts are saved in this browser only. They do not update the site until you publish them.
+              </p>
+              <button style={S.btnGold} onClick={() => createDraft()}>+ NEW DRAFT</button>
+            </div>
+            {drafts.length === 0 ? (
+              <p style={{ color: '#666', textAlign: 'center', padding: '3rem' }}>No drafts yet. Duplicate a painting or start a new draft.</p>
+            ) : (
+              <div style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
+                  <thead><tr style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                    {['Title', 'Slug', 'Status', 'Actions'].map((heading) => <th key={heading} style={{ textAlign: 'left', padding: '0.75rem 1rem', color: '#777', fontWeight: 400, fontSize: '0.75rem' }}>{heading.toUpperCase()}</th>)}
+                  </tr></thead>
+                  <tbody>{drafts.map(({ key, painting }) => (
+                    <tr key={key} style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                      <td style={{ padding: '0.9rem 1rem' }}>{painting.title || 'Untitled draft'}</td>
+                      <td style={{ padding: '0.9rem 1rem', color: '#888' }}>{painting.id}</td>
+                      <td style={{ padding: '0.9rem 1rem', color: '#e8c96a' }}>Draft</td>
+                      <td style={{ padding: '0.9rem 1rem' }}>
+                        <div style={{ display: 'flex', gap: '0.5rem' }}>
+                          <button style={S.btnEdit} onClick={() => setEditingDraftKey(key)}>Edit</button>
+                          <button style={S.btnDanger} onClick={() => discardDraft(key)}>Discard</button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}</tbody>
+                </table>
               </div>
             )}
           </div>
@@ -859,6 +1001,31 @@ export default function AdminDashboard() {
               onCancel={() => setEditPainting(null)}
               saving={saving}
             />
+          </div>
+        </div>
+      )}
+
+      {editingDraftKey && drafts.find((draft) => draft.key === editingDraftKey) && (
+        <div style={{ position: 'fixed', inset: 0, zIndex: 200, background: 'rgba(0,0,0,0.85)', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '2rem 1rem', backdropFilter: 'blur(6px)' }}>
+          <div style={{ background: '#141414', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '16px', width: '100%', maxWidth: '700px', padding: '2rem', marginTop: '2rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+              <h2 style={{ color: '#fff', fontWeight: 300, margin: 0 }}>Edit Local Draft</h2>
+              <button style={{ background: 'none', border: 'none', color: '#777', fontSize: '1.4rem', cursor: 'pointer' }} onClick={() => setEditingDraftKey(null)}>×</button>
+            </div>
+            {(() => {
+              const draft = drafts.find((item) => item.key === editingDraftKey)!;
+              return <PaintingForm
+                key={draft.key}
+                initial={draft.painting}
+                allowImageUpload={false}
+                onSave={(painting) => handleAddNew(painting)}
+                onSaveDraft={(painting) => updateDraft(draft.key, painting)}
+                saveLabel="Publish to Site"
+                draftLabel="Save Draft"
+                onCancel={() => setEditingDraftKey(null)}
+                saving={saving}
+              />;
+            })()}
           </div>
         </div>
       )}
