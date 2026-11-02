@@ -206,7 +206,9 @@ function ImageDropzone({ slug, nextPosition, onUploaded }: { slug: string; nextP
       const data = await res.json();
       if (data.success) {
         setUploadedFiles(prev => [...prev, data.filename]);
-        onUploaded(data.filename);
+        // Image paths are cached by the image host. Version the catalog URL so
+        // reuploading a filename always shows its newly uploaded bytes.
+        onUploaded(`${data.filename}?v=${Date.now()}`);
         return true;
       } else {
         alert(`${file.name}: ${data.error || 'Upload failed'}`);
@@ -349,6 +351,21 @@ function PaintingForm({
     setImageList(list);
   }
 
+  function getNextImagePosition(): number {
+    const slug = form.id.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').replace(/^-+|-+$/g, '');
+    if (!slug) return getImageList().length;
+    const escapedSlug = slug.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const coverPattern = new RegExp(`^${escapedSlug}_cover_image\\.[a-z0-9]+$`, 'i');
+    const numberedPattern = new RegExp(`^${escapedSlug}_image(\\d+)\\.[a-z0-9]+$`, 'i');
+    const usedPositions = getImageList().map((image) => {
+      const filename = image.trim().split(/[?#]/, 1)[0].split('/').pop() || '';
+      if (coverPattern.test(filename)) return 0;
+      const match = filename.match(numberedPattern);
+      return match ? Number(match[1]) - 1 : -1;
+    });
+    return Math.max(-1, ...usedPositions) + 1;
+  }
+
   const grid2: React.CSSProperties = {
     display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem',
   };
@@ -489,7 +506,7 @@ function PaintingForm({
         )}
         <div style={{ marginTop: '0.75rem' }}>
           <label style={S.label}>UPLOAD IMAGES</label>
-          <ImageDropzone slug={form.id} nextPosition={getImageList().length} onUploaded={addImageToForm} />
+          <ImageDropzone slug={form.id} nextPosition={getNextImagePosition()} onUploaded={addImageToForm} />
         </div>
       </div>
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
