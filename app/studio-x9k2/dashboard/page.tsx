@@ -441,7 +441,7 @@ function PaintingForm({
               return (
                 <div key={idx} style={{ position: 'relative', width: '84px' }}>
                   <div style={{ position: 'relative', width: '84px', height: '84px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
-                    <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <img src={src} alt="preview" style={{ width: '100%', height: '100%', objectFit: 'contain', background: '#111' }} />
                     {idx === 0 && (
                       <span style={{ position: 'absolute', bottom: 0, left: 0, right: 0, background: 'rgba(201,168,76,0.9)', color: '#000', fontSize: '0.6rem', textAlign: 'center', fontWeight: 'bold', padding: '1px 0' }}>MAIN</span>
                     )}

@@ -123,7 +123,7 @@ export default function Home() {
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
                     unoptimized
-                    className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                    className="object-contain"
                   />
                   {painting.status === 'sold' && (
                     <span className="absolute top-4 right-4 bg-background/60 backdrop-blur-md text-foreground text-[9px] uppercase tracking-widest px-3 py-1 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
@@ -168,7 +168,7 @@ export default function Home() {
                   fill
                   sizes="(max-width: 768px) 50vw, 16vw"
                   unoptimized
-                  className="object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
+                  className="object-contain filter grayscale group-hover:grayscale-0 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300" />
                 <div className="absolute inset-0 flex items-center justify-center p-4">

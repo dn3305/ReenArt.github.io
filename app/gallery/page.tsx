@@ -91,7 +91,7 @@ function GalleryContent() {
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
                   unoptimized
-                  className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
+                  className="object-contain"
                 />
 
                 {/* Badges */}

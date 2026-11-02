@@ -338,7 +338,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               priority
               unoptimized
               sizes="(max-width: 1024px) 100vw, 60vw"
-              className="object-cover transition-all duration-500"
+              className="object-contain"
             />
             {painting.status === 'sold' && (
               <span className="absolute top-6 right-6 bg-background/60 backdrop-blur-md text-foreground text-xs uppercase tracking-widest px-4 py-2 font-light border border-white/15 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">
@@ -364,7 +364,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                     fill
                   unoptimized
                     sizes="80px"
-                    className="object-cover"
+                    className="object-contain"
                   />
                 </button>
               ))}
