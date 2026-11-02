@@ -28,7 +28,7 @@ export const paintings: Painting[] = [
     "frameCharge": 50,
     "formattedPrice": "$250",
     "description": "Attachment examines the invisible emotional networks formed through trauma, memory, and conditioning, revealing how past experiences continue to shape identity, attachment, and human connection.",
-    "details": "* Edition: Original (1/1)\r\n* Framing: Unframed(with mount)\r\n* Signed: Signed on both the front and back\r\n* Certificate of Authenticity: Included",
+    "details": "* Edition: Original (1/1)\r\n* Framing: Unframed(with mount)\r\n* Certificate of Authenticity: Included",
     "images": [
       "/images/IMG_3269.jpg",
       "/images/IMG_9449.jpg",

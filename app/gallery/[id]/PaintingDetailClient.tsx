@@ -46,6 +46,10 @@ declare global {
 }
 
 export default function PaintingDetailClient({ painting }: Props) {
+  const detailItems = painting.details
+    .split(/\r?\n/)
+    .map((detail) => detail.replace(/^\s*\*\s*/, '').trim())
+    .filter(Boolean);
   const [frameOption, setFrameOption] = useState<'with-frame' | 'without-frame'>('with-frame');
   const frameAmount = frameOption === 'with-frame' ? painting.frameCharge : 0;
   const selectedPrice = painting.price + frameAmount;
@@ -462,9 +466,10 @@ export default function PaintingDetailClient({ painting }: Props) {
           {/* Shipping Info */}
           <div className="flex flex-col gap-2 bg-white/5 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.06)] p-5">
             <h4 className="text-[10px] uppercase tracking-widest text-accent font-medium">Acquiring this Artwork</h4>
-            <p className="text-[11px] font-light text-muted leading-relaxed tracking-wide">
-              {painting.details} Worldwide shipping in reinforced archival packaging. Ships within 5-7 business days with active tracking.
-            </p>
+            <ul className="list-disc pl-4 text-[11px] font-light text-muted leading-relaxed tracking-wide space-y-1">
+              {detailItems.map((detail) => <li key={detail}>{detail}</li>)}
+              <li>Worldwide shipping in reinforced packaging. Ships within 5-7 business days with active tracking.</li>
+            </ul>
             <p className="text-[11px] font-light text-muted leading-relaxed tracking-wide">
               Checkout covers the physical artwork only. Copyright and exclusive usage rights remain with the artist. For exclusive or commercial licensing,{' '}
               <button type="button" onClick={() => setIsInquiryOpen(true)} className="text-accent underline underline-offset-2 hover:text-foreground">send an enquiry for this painting</button>.
