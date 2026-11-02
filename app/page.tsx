@@ -34,7 +34,7 @@ export default function Home() {
             version had a sharp edge where the photo met the header border. */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="https://images.unsplash.com/photo-1579783900882-c0d3dad7b119?auto=format&fit=crop&w=1920&q=80"
+            src="/images/bg_image.jpeg"
             alt=""
             fill
             priority
@@ -48,12 +48,11 @@ export default function Home() {
 
         {/* Hero Content */}
         <div className="relative z-10 mx-auto max-w-4xl text-center px-6 md:px-12 flex flex-col items-center gap-6 animate-fade-in">
-          <span className="text-[10px] tracking-[0.4em] uppercase text-accent font-medium px-4 py-1.5 rounded-full bg-white/5 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]">Fine Art Portfolio</span>
           <h1 className="font-serif text-4xl sm:text-6xl md:text-7xl font-extralight tracking-tight leading-none text-foreground [text-wrap:balance]">
-            Capturing the Ephemeral
+            Exploring the Unsaid
           </h1>
           <p className="max-w-xl text-sm sm:text-base font-light tracking-wide text-muted leading-relaxed [text-wrap:pretty]">
-            Exploring human connection, visceral energy, and organic textures through oils, heavy acrylics, and digital dreamscapes.
+            An exploration of memory, attachment, emotion, and the psychological structures that shape human experience through abstraction.
           </p>
           <div className="mt-4 flex gap-4">
             <Link
@@ -77,15 +76,15 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col gap-4">
             <h2 className="font-serif text-3xl md:text-4xl font-light tracking-wide italic text-accent">
-              "My paintings are thresholds to unexpressed feelings—where tension dissolves into texture."
+              "Exploring the psychological landscapes of human experience through abstraction."
             </h2>
           </div>
           <div className="flex flex-col gap-6 text-sm font-light text-muted leading-relaxed tracking-wide">
             <p>
-              Working out of her studio, Nazia works across mediums to bridge the gap between tangible and emotional landscapes. Her paintings use heavy textures, organic fibers, and contrasting hues to invoke visceral reactions.
+              Nazia’s studio is a space of ongoing research, experimentation, and discovery, where ideas emerge through observation, instinct, and material exploration. Working across mediums, she tests textures, pigments, gestures, and processes, allowing unexpected discoveries to shape her work. 
             </p>
             <p>
-              Each series represents a specific era of study: from the deep charcoal and crimson movements of <em>Rage</em>, to the delicate, single-breath strokes of <em>Ink on Paper</em>, and the modern, boundless concepts in <em>Digital Art</em>.
+              Some experiments evolve into larger bodies of work, while others remain studies or starting points for new inquiries. Her process unfolds through an evolving dialogue between material, thought, and visual possibility.
             </p>
           </div>
         </div>
