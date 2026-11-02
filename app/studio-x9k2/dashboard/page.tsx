@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef, DragEvent, ChangeEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { getPaintingImageUrl } from '../../../lib/imageUrl';
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -186,22 +187,21 @@ async function compressImageForUpload(file: File): Promise<File> {
 
 // ─── Image Dropzone ───────────────────────────────────────────────────────────
 
-function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void }) {
+function ImageDropzone({ slug, nextPosition, onUploaded }: { slug: string; nextPosition: number; onUploaded: (filename: string) => void }) {
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
 
-  async function uploadFile(originalFile: File): Promise<boolean> {
+  async function uploadFile(originalFile: File, position: number): Promise<boolean> {
     try {
       const file = await compressImageForUpload(originalFile);
       const fd = new FormData();
       fd.append('file', file);
-      const savedToken = localStorage.getItem('ra_gh_token') || '';
-      const headers: Record<string, string> = {};
-      if (savedToken) headers['x-github-token'] = savedToken;
+      fd.append('slug', slug);
+      fd.append('position', String(position));
 
-      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd, headers });
+      const res = await fetch('/api/admin/upload', { method: 'POST', body: fd });
       const data = await res.json();
       if (data.success) {
         setUploadedFiles(prev => [...prev, data.filename]);
@@ -217,14 +217,16 @@ function ImageDropzone({ onUploaded }: { onUploaded: (filename: string) => void 
     }
   }
 
-  // Uploaded one at a time (not in parallel) — concurrent writes to the
-  // GitHub repo from several uploads at once can race each other and silently
-  // drop one, which previously produced a broken image reference.
+  // Upload sequentially so each file receives its stable slot-based name.
   async function uploadFiles(files: File[]) {
+    if (!slug.trim()) {
+      alert('Enter a painting ID (slug) before uploading images.');
+      return;
+    }
     setUploading(true);
     try {
-      for (const file of files) {
-        await uploadFile(file);
+      for (const [index, file] of files.entries()) {
+        await uploadFile(file, nextPosition + index);
       }
     } finally {
       setUploading(false);
@@ -435,7 +437,7 @@ function PaintingForm({
         {form.images && (
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', marginTop: '0.75rem' }}>
             {getImageList().map((img, idx, arr) => {
-              const src = img.startsWith('http') ? img : `/images/${img}`;
+              const src = getPaintingImageUrl(img);
               return (
                 <div key={idx} style={{ position: 'relative', width: '84px' }}>
                   <div style={{ position: 'relative', width: '84px', height: '84px', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.2)' }}>
@@ -480,7 +482,7 @@ function PaintingForm({
         )}
         <div style={{ marginTop: '0.75rem' }}>
           <label style={S.label}>UPLOAD IMAGES</label>
-          <ImageDropzone onUploaded={addImageToForm} />
+          <ImageDropzone slug={form.id} nextPosition={getImageList().length} onUploaded={addImageToForm} />
         </div>
       </div>
       <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end', paddingTop: '0.5rem' }}>
@@ -506,10 +508,6 @@ export default function AdminDashboard() {
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ msg: string; type: 'success' | 'error' } | null>(null);
   const [search, setSearch] = useState('');
-  const [githubToken, setGithubToken] = useState('');
-  const [tokenStatus, setTokenStatus] = useState<{ msg: string; ok: boolean } | null>(null);
-  const [validating, setValidating] = useState(false);
-  const [pushing, setPushing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState<string | null>(null);
   const inFlightRef = useRef(false);
 
@@ -529,9 +527,12 @@ export default function AdminDashboard() {
   }
 
   useEffect(() => {
-    loadPaintings();
-    const savedToken = localStorage.getItem('ra_gh_token');
-    if (savedToken) setGithubToken(savedToken);
+    let cancelled = false;
+    fetch('/api/admin/paintings')
+      .then((res) => res.json())
+      .then((data) => { if (!cancelled) setPaintings(data.paintings || []); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, []);
 
   async function handleLogout() {
@@ -544,22 +545,20 @@ export default function AdminDashboard() {
     inFlightRef.current = true;
     setSaving(true);
     try {
-      const token = localStorage.getItem('ra_gh_token') || '';
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['x-github-token'] = token;
-
       const res = await fetch(`/api/admin/paintings/${editPainting!.id}`, {
         method: 'PUT',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated),
       });
       const data = await res.json();
       if (data.success && data.pushedToGitHub) {
-        showToast('Painting updated!', 'success');
+        showToast(data.removedImageCount > 0 && !data.imagesDeleted
+          ? 'Painting updated, but removed images could not be deleted from Oracle/Drive.'
+          : 'Painting updated!', data.removedImageCount > 0 && !data.imagesDeleted ? 'error' : 'success');
         setEditPainting(null);
         loadPaintings();
       } else if (data.success) {
-        showToast('Not saved: no GitHub token configured (see GitHub Settings tab)', 'error');
+        showToast(data.error || 'Could not save painting data.', 'error');
       } else {
         showToast(data.error || 'Failed to save', 'error');
       }
@@ -574,13 +573,9 @@ export default function AdminDashboard() {
     inFlightRef.current = true;
     setSaving(true);
     try {
-      const token = localStorage.getItem('ra_gh_token') || '';
-      const headers: Record<string, string> = { 'Content-Type': 'application/json' };
-      if (token) headers['x-github-token'] = token;
-
       const res = await fetch('/api/admin/paintings', {
         method: 'POST',
-        headers,
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(p),
       });
       const data = await res.json();
@@ -589,7 +584,7 @@ export default function AdminDashboard() {
         setTab('paintings');
         loadPaintings();
       } else if (data.success) {
-        showToast('Not saved: no GitHub token configured (see GitHub Settings tab)', 'error');
+        showToast(data.error || 'Could not save painting data.', 'error');
       } else {
         showToast(data.error || 'Failed to add', 'error');
       }
@@ -604,17 +599,15 @@ export default function AdminDashboard() {
     inFlightRef.current = true;
     setSaving(true);
     try {
-      const token = localStorage.getItem('ra_gh_token') || '';
-      const headers: Record<string, string> = {};
-      if (token) headers['x-github-token'] = token;
-
-      const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE', headers });
+      const res = await fetch(`/api/admin/paintings/${id}`, { method: 'DELETE' });
       const data = await res.json();
       if (data.success && data.pushedToGitHub) {
-        showToast('Painting deleted', 'success');
+        showToast(data.removedImageCount > 0 && !data.imagesDeleted
+          ? 'Painting deleted, but its images could not be deleted from Oracle/Drive.'
+          : 'Painting deleted', data.removedImageCount > 0 && !data.imagesDeleted ? 'error' : 'success');
         loadPaintings();
       } else if (data.success) {
-        showToast('Not deleted: no GitHub token configured (see GitHub Settings tab)', 'error');
+        showToast(data.error || 'Could not delete painting.', 'error');
       } else {
         showToast(data.error || 'Failed to delete', 'error');
       }
@@ -625,43 +618,13 @@ export default function AdminDashboard() {
     }
   }
 
-  async function handleValidateToken() {
-    setValidating(true);
-    setTokenStatus(null);
-    try {
-      const res = await fetch('/api/admin/github/validate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: githubToken }),
-      });
-      const data = await res.json();
-      if (data.valid) {
-        localStorage.setItem('ra_gh_token', githubToken);
-        setTokenStatus({ msg: `✓ Connected as ${data.username} — ${data.message}`, ok: true });
-      } else {
-        setTokenStatus({ msg: data.error || data.message || 'Token invalid', ok: false });
-      }
-    } finally {
-      setValidating(false);
-    }
-  }
-
   async function handlePushToGitHub() {
-    setPushing(true);
-    try {
-      const res = await fetch('/api/admin/github/push', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ token: githubToken }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        showToast(`Pushed to GitHub: ${data.pushed.join(', ')}`, 'success');
-      } else {
-        showToast(data.error || 'Push failed', 'error');
-      }
-    } finally {
-      setPushing(false);
+    const res = await fetch('/api/admin/github/push', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`GitHub sync: ${data.pushed.join(', ')}`, 'success');
+    } else {
+      showToast(data.error || 'GitHub sync failed', 'error');
     }
   }
 
@@ -837,78 +800,30 @@ export default function AdminDashboard() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
             <div style={S.card}>
               <h2 style={{ color: '#fff', fontWeight: 300, marginTop: 0, marginBottom: '0.5rem' }}>
-                GitHub Integration
+                Server Integrations
               </h2>
               <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1.5rem' }}>
-                Enter your GitHub Personal Access Token (PAT) with <code>repo</code> scope write access to{' '}
+                Admin changes use the server-side <code>GITHUB_TOKEN</code> configured in Vercel. The token is never stored in this browser. Painting images are uploaded to the Oracle image server and backed up to Google Drive.{' '}
                 <a href="https://github.com/dn3305/ReenArt.github.io" target="_blank" rel="noreferrer"
                   style={{ color: '#c9a84c' }}>
                   dn3305/ReenArt.github.io
-                </a>. The token is saved in your browser only — never in code.
+                </a>.
               </p>
-
-              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'flex-end', marginBottom: '1rem' }}>
-                <div style={{ flex: 1 }}>
-                  <label style={S.label}>PERSONAL ACCESS TOKEN</label>
-                  <input
-                    type="password"
-                    style={S.input}
-                    value={githubToken}
-                    onChange={e => setGithubToken(e.target.value)}
-                    placeholder="ghp_xxxxxxxxxxxxxxxxxxxx"
-                  />
-                </div>
-                <button
-                  style={{ ...S.btnGhost, whiteSpace: 'nowrap', height: '40px' }}
-                  onClick={handleValidateToken}
-                  disabled={validating || !githubToken}
-                >
-                  {validating ? 'Checking…' : 'Validate Token'}
-                </button>
-              </div>
-
-              {tokenStatus && (
-                <div style={{
-                  padding: '0.75rem 1rem',
-                  borderRadius: '8px',
-                  background: tokenStatus.ok ? 'rgba(34,197,94,0.1)' : 'rgba(220,38,38,0.1)',
-                  border: `1px solid ${tokenStatus.ok ? 'rgba(34,197,94,0.3)' : 'rgba(220,38,38,0.3)'}`,
-                  color: tokenStatus.ok ? '#86efac' : '#fca5a5',
-                  fontSize: '0.85rem',
-                  marginBottom: '1rem',
-                }}>
-                  {tokenStatus.msg}
-                </div>
-              )}
 
               <div style={{ borderTop: '1px solid rgba(255,255,255,0.08)', paddingTop: '1.5rem', marginTop: '0.5rem' }}>
                 <h3 style={{ color: '#ccc', fontWeight: 400, fontSize: '1rem', marginTop: 0, marginBottom: '0.5rem' }}>
                   Push to GitHub
                 </h3>
                 <p style={{ color: '#666', fontSize: '0.85rem', marginBottom: '1rem' }}>
-                  Every Save/Add/Delete already syncs to GitHub automatically once a token is set above &mdash; you shouldn&apos;t normally need this. It only matters if you&apos;re editing <code>paintings.csv</code> locally on this machine and want to push that copy up.
+                  Save, add, and delete actions sync the painting catalog to GitHub automatically. Use this button only to initialize the catalog if needed.
                 </p>
                 <button
-                  style={{ ...S.btnGold, opacity: (!githubToken || pushing) ? 0.5 : 1 }}
+                  style={S.btnGold}
                   onClick={handlePushToGitHub}
-                  disabled={!githubToken || pushing}
                 >
-                  {pushing ? '⏳ Pushing…' : '⬆ Push paintings.csv to GitHub'}
+                  ⬆ Sync paintings.csv to GitHub
                 </button>
               </div>
-            </div>
-
-            <div style={S.card}>
-              <h3 style={{ color: '#fff', fontWeight: 300, marginTop: 0, marginBottom: '0.75rem' }}>
-                How to Create a GitHub Token
-              </h3>
-              <ol style={{ color: '#888', fontSize: '0.88rem', lineHeight: 1.8, paddingLeft: '1.25rem', margin: 0 }}>
-                <li>Go to <a href="https://github.com/settings/tokens/new" target="_blank" rel="noreferrer" style={{ color: '#c9a84c' }}>github.com/settings/tokens/new</a></li>
-                <li>Give it a name like <strong style={{ color: '#ccc' }}>ReenArt Admin</strong></li>
-                <li>Set expiration to your preference</li>
-                <li>Under <strong style={{ color: '#ccc' }}>Scopes</strong>, check <strong style={{ color: '#ccc' }}>repo</strong> (full control)</li>
-                <li>Click <strong style={{ color: '#ccc' }}>Generate token</strong> and copy it here</li>
-              </ol>
             </div>
           </div>
         )}

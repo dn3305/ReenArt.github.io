@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { paintings } from "./data/paintings";
+import { getPaintingImageUrl } from "../lib/imageUrl";
 
 export default function Home() {
   // Feature the 3 most recent paintings that have at least one image, so this
@@ -34,10 +35,11 @@ export default function Home() {
             version had a sharp edge where the photo met the header border. */}
         <div className="absolute inset-0 z-0">
           <Image
-            src="/images/bg_image.jpeg"
+            src={getPaintingImageUrl('/images/bg_image.jpeg')}
             alt=""
             fill
             priority
+            unoptimized
             className="object-cover brightness-[0.95] dark:brightness-[0.35]"
           />
           {/* Top and bottom fade into the surrounding black, plus a soft
@@ -76,7 +78,7 @@ export default function Home() {
         <div className="mx-auto max-w-7xl px-6 md:px-12 grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
           <div className="flex flex-col gap-4">
             <h2 className="font-serif text-3xl md:text-4xl font-light tracking-wide italic text-accent">
-              "Exploring the psychological landscapes of human experience through abstraction."
+              &ldquo;Exploring the psychological landscapes of human experience through abstraction.&rdquo;
             </h2>
           </div>
           <div className="flex flex-col gap-6 text-sm font-light text-muted leading-relaxed tracking-wide">
@@ -116,10 +118,11 @@ export default function Home() {
               >
                 <div className="relative aspect-[3/4] overflow-hidden bg-zinc-100 dark:bg-zinc-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-white/20 transition-colors duration-300">
                   <Image
-                    src={painting.images[0]}
+                    src={getPaintingImageUrl(painting.images[0])}
                     alt={painting.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
+                    unoptimized
                     className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                   />
                   {painting.status === 'sold' && (
@@ -160,10 +163,11 @@ export default function Home() {
                 className="relative aspect-square overflow-hidden group border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] hover:border-white/20 transition-colors duration-300"
               >
                 <Image
-                  src={series.image}
+                  src={getPaintingImageUrl(series.image)}
                   alt={series.name}
                   fill
                   sizes="(max-width: 768px) 50vw, 16vw"
+                  unoptimized
                   className="object-cover filter grayscale group-hover:grayscale-0 group-hover:scale-110 transition-all duration-700"
                 />
                 <div className="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors duration-300" />

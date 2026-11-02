@@ -1,11 +1,12 @@
 import { NextResponse } from 'next/server';
+import { getAdminGitHubToken } from '../../../../../lib/adminGitHubToken';
 
 const REPO = 'dn3305/ReenArt.github.io';
 
-export async function POST(req: Request) {
+export async function GET() {
   try {
-    const { token } = await req.json();
-    if (!token) return NextResponse.json({ error: 'No token provided' }, { status: 400 });
+    const token = getAdminGitHubToken();
+    if (!token) return NextResponse.json({ valid: false, error: 'GITHUB_TOKEN is not configured on the server.' }, { status: 503 });
 
     const res = await fetch(`https://api.github.com/repos/${REPO}`, {
       headers: {

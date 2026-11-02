@@ -1,0 +1,24 @@
+[Unit]
+Description=ReenArt image storage and Google Drive backup service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=reenart-images
+Group=www-data
+WorkingDirectory=/opt/reenart-image-server
+EnvironmentFile=/etc/reenart-image-server.env
+Environment=XDG_CACHE_HOME=/var/cache/reenart-images
+ExecStart=/usr/bin/node /opt/reenart-image-server/server.mjs
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/www/reenart-images
+CacheDirectory=reenart-images
+
+[Install]
+WantedBy=multi-user.target

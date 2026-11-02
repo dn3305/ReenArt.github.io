@@ -60,6 +60,7 @@ export function rowsToCsv(rows: string[][]): string {
 export async function readCsvRowsLive(token?: string): Promise<string[][]> {
   const live = await fetchGitHubFile(PAINTINGS_CSV_PATH, token);
   if (live !== null) return parseCsvRows(live.content);
+  if (token) throw new Error('Could not read paintings.csv from GitHub; the catalog was left unchanged.');
   return [
     ['id', 'title', 'series', 'dimensions', 'medium', 'price', 'status', 'year', 'images', 'description', 'additionalInfo'],
   ];

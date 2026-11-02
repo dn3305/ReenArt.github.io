@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
+import { getPaintingImageUrl } from '../../lib/imageUrl';
 
 export default function AboutPage() {
   const [formSubmitted, setFormSubmitted] = useState(false);
@@ -63,10 +64,11 @@ export default function AboutPage() {
         <div className="lg:col-span-5 flex flex-col gap-6">
           <div className="relative aspect-[3/4] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <Image
-              src="/images/profile.jpg"
+              src={getPaintingImageUrl('/images/profile.jpg')}
               alt="Nazia Naureen"
               fill
               priority
+              unoptimized
               sizes="(max-width: 1024px) 100vw, 40vw"
               className="object-cover grayscale brightness-95 dark:brightness-75 hover:grayscale-0 transition-all duration-700 ease-out"
             />
@@ -252,7 +254,7 @@ Through abstraction, she develops concept-led bodies of work that explore the in
                 <div className="flex flex-col gap-2">
                   <h3 className="font-serif text-xl font-light tracking-wide text-foreground">Message Sent</h3>
                   <p className="text-xs font-light text-muted leading-relaxed max-w-md tracking-wide">
-                    Thank you. Your message has been received by Nazia's studio. You will receive a response within 2 business days.
+                    Thank you. Your message has been received by Nazia&apos;s studio. You will receive a response within 2 business days.
                   </p>
                 </div>
                 <button

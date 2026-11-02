@@ -1,149 +1,77 @@
 import { NextResponse } from 'next/server';
-import fs from 'fs';
 import path from 'path';
 
-const REPO = 'dn3305/ReenArt.github.io';
-const BRANCH = 'main';
+export const runtime = 'nodejs';
 
-async function pushToGitHubOnce(filename: string, buffer: Buffer, token: string): Promise<boolean> {
-  const base64Content = buffer.toString('base64');
-  const filePath = `public/images/${filename}`;
-
-  // Get SHA if exists
-  let sha: string | null = null;
-  const getRes = await fetch(
-    `https://api.github.com/repos/${REPO}/contents/${filePath}?ref=${BRANCH}`,
-    { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json' }, cache: 'no-store' }
-  );
-  if (getRes.ok) {
-    const data = await getRes.json();
-    sha = data.sha ?? null;
-  }
-
-  const body: Record<string, unknown> = {
-    message: `🖼️ Upload image: ${filename}`,
-    content: base64Content,
-    branch: BRANCH,
-  };
-  if (sha) body.sha = sha;
-
-  const putRes = await fetch(`https://api.github.com/repos/${REPO}/contents/${filePath}`, {
-    method: 'PUT',
-    headers: {
-      Authorization: `Bearer ${token}`,
-      Accept: 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(body),
-  });
-
-  return putRes.ok;
-}
-
-async function pushToGitHub(filename: string, buffer: Buffer, token?: string) {
-  if (!token) return false;
-  try {
-    if (await pushToGitHubOnce(filename, buffer, token)) return true;
-    // Retry once — covers transient failures and a stale-sha conflict from a
-    // near-simultaneous write elsewhere in the repo.
-    return await pushToGitHubOnce(filename, buffer, token);
-  } catch (err) {
-    console.error('GitHub push error:', err);
-    try {
-      return await pushToGitHubOnce(filename, buffer, token);
-    } catch (err2) {
-      console.error('GitHub push retry error:', err2);
-      return false;
-    }
-  }
+function cleanSlug(value: string): string {
+  return value.trim().toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9_-]/g, '').replace(/^-+|-+$/g, '');
 }
 
 export async function POST(req: Request) {
   try {
     const formData = await req.formData();
     const file = formData.get('file');
-    const token = req.headers.get('x-github-token') || (formData.get('token') as string) || '';
+    const slug = cleanSlug(String(formData.get('slug') ?? ''));
+    const position = Number(formData.get('position'));
 
     if (!(file instanceof File)) {
-      return NextResponse.json({ error: 'No file provided' }, { status: 400 });
+      return NextResponse.json({ error: 'No image file was provided.' }, { status: 400 });
+    }
+    if (!slug) {
+      return NextResponse.json({ error: 'Enter a painting slug before uploading images.' }, { status: 400 });
+    }
+    if (!Number.isInteger(position) || position < 0 || position > 99) {
+      return NextResponse.json({ error: 'Invalid image position.' }, { status: 400 });
     }
 
-    const originalName = file.name;
-    const ext = path.extname(originalName).toLowerCase();
-    let buffer = Buffer.from(await file.arrayBuffer());
-    let savedName = originalName;
+    const oracleUploadUrl = process.env.ORACLE_UPLOAD_URL?.trim();
+    const oracleUploadToken = process.env.ORACLE_UPLOAD_TOKEN?.trim();
+    if (!oracleUploadUrl || !oracleUploadToken) {
+      return NextResponse.json({ error: 'Oracle image storage is not configured on the server.' }, { status: 503 });
+    }
 
-    // Handle HEIC / HEIF conversion
-    if (ext === '.heic' || ext === '.heif') {
+    const originalExtension = path.extname(file.name).toLowerCase();
+    let buffer = Buffer.from(await file.arrayBuffer());
+    let extension = originalExtension;
+
+    if (extension === '.heic' || extension === '.heif') {
       try {
         const heicConvert = (await import('heic-convert')).default;
-        const jpegBuffer = await heicConvert({
-          buffer,
-          format: 'JPEG',
-          quality: 0.92,
-        });
+        const jpegBuffer = await heicConvert({ buffer, format: 'JPEG', quality: 0.92 });
         buffer = Buffer.from(jpegBuffer);
-        savedName = originalName.replace(/\.(heic|heif)$/i, '.jpg');
-      } catch (heicErr) {
-        console.error('HEIC conversion error:', heicErr);
+        extension = '.jpg';
+      } catch (error) {
+        console.error('HEIC conversion error:', error);
+        return NextResponse.json({ error: 'Could not convert this HEIC image. Please try a JPG or PNG.' }, { status: 415 });
       }
     }
 
-    // Sanitize filename to avoid weird URL characters
-    savedName = savedName.replace(/[^a-zA-Z0-9._-]/g, '_');
-
-    // Prevent overwrites on common generic camera/export names like FullSizeRender or duplicates
-    const isGenericName = /^fullsizerender/i.test(savedName) || /^image\d*/i.test(savedName);
-    const imagesDir = path.join(process.cwd(), 'public', 'images');
-    if (isGenericName || fs.existsSync(path.join(imagesDir, savedName))) {
-      const timestamp = Date.now().toString(36);
-      savedName = `${timestamp}-${savedName}`;
+    if (!['.jpg', '.jpeg', '.png', '.webp'].includes(extension)) {
+      return NextResponse.json({ error: 'Use a JPG, PNG, or WebP image.' }, { status: 415 });
     }
 
-    // 1. Try local disk save (works on local dev machine)
-    let savedOnDisk = false;
-    try {
-      const imagesDir = path.join(process.cwd(), 'public', 'images');
-      if (!fs.existsSync(imagesDir)) {
-        fs.mkdirSync(imagesDir, { recursive: true });
-      }
-      fs.writeFileSync(path.join(imagesDir, savedName), buffer);
-      savedOnDisk = true;
-    } catch (diskErr) {
-      // EROFS on serverless environment (Vercel) - expected & handled!
-      console.log('Serverless environment detected (read-only filesystem)');
-    }
+    const imageLabel = position === 0 ? 'cover_image' : `image${position + 1}`;
+    const filename = `${slug}_${imageLabel}${extension === '.jpeg' ? '.jpg' : extension}`;
+    const upload = new FormData();
+    upload.append('file', new Blob([buffer], { type: file.type || 'application/octet-stream' }), filename);
+    upload.append('filename', filename);
 
-    // 2. If GitHub token present, push to GitHub repository so Vercel deploys it
-    let pushedToGitHub = false;
-    if (token) {
-      pushedToGitHub = await pushToGitHub(savedName, buffer, token);
-    }
-
-    // Without a token, or if the GitHub push itself failed, the file only ever
-    // existed in this request's memory — nothing was actually persisted
-    // anywhere the site can read it back from. Report that as a failure
-    // instead of success:true, otherwise the dashboard adds a filename to the
-    // painting that doesn't actually exist, producing a broken image.
-    if (!pushedToGitHub) {
-      return NextResponse.json({
-        success: false,
-        error: token
-          ? 'Upload to GitHub failed — try uploading this image again'
-          : 'No GitHub token configured (see GitHub Settings tab) — image was not saved',
-      }, { status: 502 });
-    }
-
-    return NextResponse.json({
-      success: true,
-      filename: savedName,
-      pushedToGitHub,
-      savedOnDisk,
-      // Return Data URI so the image displays immediately in the UI even before Vercel rebuilds!
-      dataUri: `data:image/jpeg;base64,${buffer.toString('base64')}`,
+    const response = await fetch(oracleUploadUrl, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${oracleUploadToken}` },
+      body: upload,
+      cache: 'no-store',
+      signal: AbortSignal.timeout(60_000),
     });
+    const result = await response.json().catch(() => ({}));
+    if (!response.ok || result.success !== true) {
+      console.error('Oracle image upload failed:', response.status, result.error);
+      return NextResponse.json({ error: result.error || 'Oracle image upload or Drive backup failed.' }, { status: 502 });
+    }
+
+    return NextResponse.json({ success: true, filename, backup: result.backup ?? 'complete' });
   } catch (error) {
-    console.error('Upload error:', error);
+    console.error('Image upload error:', error);
     return NextResponse.json(
       { error: error instanceof Error ? error.message : String(error) },
       { status: 500 }

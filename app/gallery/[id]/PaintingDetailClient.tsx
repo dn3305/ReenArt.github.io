@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import Script from 'next/script';
 import { Painting } from '../../data/paintings';
+import { getPaintingImageUrl } from '../../../lib/imageUrl';
 
 interface Props {
   painting: Painting;
@@ -331,10 +332,11 @@ export default function PaintingDetailClient({ painting }: Props) {
         <div className="lg:col-span-7 flex flex-col gap-4">
           <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)]">
             <Image
-              src={painting.images[activeImageIndex]}
+              src={getPaintingImageUrl(painting.images[activeImageIndex])}
               alt={`${painting.title} - View ${activeImageIndex + 1}`}
               fill
               priority
+              unoptimized
               sizes="(max-width: 1024px) 100vw, 60vw"
               className="object-cover transition-all duration-500"
             />
@@ -357,9 +359,10 @@ export default function PaintingDetailClient({ painting }: Props) {
                   }`}
                 >
                   <Image
-                    src={img}
+                  src={getPaintingImageUrl(img)}
                     alt={`Thumbnail view ${idx + 1}`}
                     fill
+                  unoptimized
                     sizes="80px"
                     className="object-cover"
                   />
@@ -406,7 +409,7 @@ export default function PaintingDetailClient({ painting }: Props) {
               </div>
               <div>
                 <dt className="uppercase text-[9px] text-muted tracking-widest font-normal mb-1">Origin</dt>
-                <dd className="text-foreground">Artist's Studio</dd>
+                <dd className="text-foreground">Artist&apos;s Studio</dd>
               </div>
             </dl>
           </div>
@@ -557,7 +560,7 @@ export default function PaintingDetailClient({ painting }: Props) {
                 <div className="flex flex-col gap-2">
                   <h3 className="font-serif text-2xl font-light tracking-wide text-foreground">Inquiry Received</h3>
                   <p className="text-xs font-light text-muted leading-relaxed max-w-sm tracking-wide">
-                    Thank you for your interest in Nazia's work. A personal response and invoice outline will be sent to <strong>{formData.email}</strong> within 24 to 48 hours.
+                    Thank you for your interest in Nazia&apos;s work. A personal response and invoice outline will be sent to <strong>{formData.email}</strong> within 24 to 48 hours.
                   </p>
                 </div>
                 <button

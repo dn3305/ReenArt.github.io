@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect, Suspense } from 'react';
+import { Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import Link from 'next/link';
 import { paintings } from '../data/paintings';
+import { getPaintingImageUrl } from '../../lib/imageUrl';
 
 // Helper to get unique filters dynamically based on current catalog
 function getFilters(paintingsList: typeof paintings) {
@@ -15,24 +16,13 @@ function getFilters(paintingsList: typeof paintings) {
 function GalleryContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [activeFilter, setActiveFilter] = useState('All');
+  const seriesParam = searchParams.get('series');
+  const selectedFilter = getFilters(paintings).find((filter) => filter.toLowerCase() === (seriesParam || '').toLowerCase()) || 'All';
+  const activeFilter = selectedFilter;
 
   const filtersList = getFilters(paintings);
 
-  // Sync state with query parameters
-  useEffect(() => {
-    const seriesParam = searchParams.get('series');
-    if (seriesParam && filtersList.some(f => f.toLowerCase() === seriesParam.toLowerCase())) {
-      // Find the exact casing
-      const matchedFilter = filtersList.find(f => f.toLowerCase() === seriesParam.toLowerCase());
-      if (matchedFilter) setActiveFilter(matchedFilter);
-    } else {
-      setActiveFilter('All');
-    }
-  }, [searchParams, filtersList]);
-
   const handleFilterChange = (filter: string) => {
-    setActiveFilter(filter);
     // Update URL query parameters
     if (filter === 'All') {
       router.push('/gallery', { scroll: false });
@@ -54,7 +44,7 @@ function GalleryContent() {
           Art Gallery
         </h1>
         <p className="text-xs md:text-sm font-light text-muted tracking-wide leading-relaxed">
-          Explore Nazia's visual art series. Each painting is an original piece, textured, signed, and ready to become a focal point in your collection.
+          Explore Nazia&apos;s visual art series. Each painting is an original piece, textured, signed, and ready to become a focal point in your collection.
         </p>
       </div>
 
@@ -96,10 +86,11 @@ function GalleryContent() {
               {/* Image Box */}
               <div className="relative aspect-[4/5] w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.08)] group-hover:border-white/20 transition-colors duration-300">
                 <Image
-                  src={painting.images[0]}
+                  src={getPaintingImageUrl(painting.images[0])}
                   alt={painting.title}
                   fill
                   sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
+                  unoptimized
                   className="object-cover group-hover:scale-105 transition-transform duration-700 ease-out"
                 />
 
